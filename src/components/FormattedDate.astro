@@ -4,14 +4,13 @@ interface Props {
 }
 
 const { date } = Astro.props;
+
+// 手动格式化以确保数字与汉字之间有空格
+const year = date.getFullYear();
+const month = date.getMonth() + 1;
+const day = date.getDate();
 ---
 
 <time datetime={date.toISOString()}>
-	{
-		date.toLocaleDateString('en-us', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		})
-	}
+	{year} 年 {month} 月 {day} 日
 </time>

@@ -1,0 +1,104 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Sidebar from '../components/Sidebar.astro';
+import MobileNav from '../components/MobileNav.astro';
+import Footer from '../components/Footer.astro';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	title: string;
+	description: string;
+	image?: ImageMetadata;
+	showSidebar?: boolean;
+}
+
+const { title, description, image, showSidebar = true } = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} image={image} />
+	</head>
+	<body>
+		<MobileNav />
+		<div class:list={['layout-wrapper', { 'no-sidebar': !showSidebar }]}>
+			{showSidebar && <Sidebar />}
+			<div class="content-area">
+				<main>
+					<slot />
+				</main>
+				<Footer />
+			</div>
+		</div>
+
+		<style>
+			.layout-wrapper {
+				display: flex;
+				min-height: 100vh;
+				max-width: 1440px;
+				margin: 0 auto;
+				padding: 0 2rem;
+				gap: 2rem;
+			}
+
+			.content-area {
+				flex: 1;
+				min-width: 0;
+				display: flex;
+				flex-direction: column;
+				padding-top: 2rem;
+			}
+
+			main {
+				flex: 1;
+				width: 100%;
+				background: var(--color-bg-card);
+				border-radius: var(--radius-lg);
+				padding: 2.5rem;
+				box-shadow: var(--shadow-soft);
+				border: 1px solid var(--color-border);
+				margin-bottom: 2rem;
+			}
+
+			.no-sidebar {
+				max-width: 1000px;
+			}
+
+			.no-sidebar main {
+				max-width: 100%;
+			}
+
+			@media (max-width: 1024px) {
+				.layout-wrapper {
+					padding: 0 1rem;
+					gap: 1.5rem;
+				}
+				
+				main {
+					padding: 1.5rem;
+				}
+			}
+
+			@media (max-width: 768px) {
+				.layout-wrapper {
+					flex-direction: column;
+					padding: 0;
+					gap: 0;
+				}
+
+				.content-area {
+					padding-top: 60px; /* Offset for fixed mobile nav */
+				}
+
+				main {
+					border-radius: 0;
+					border-left: none;
+					border-right: none;
+					padding: 1.5rem 1rem;
+					margin-bottom: 0;
+					box-shadow: none;
+				}
+			}
+		</style>
+	</body>
+</html>

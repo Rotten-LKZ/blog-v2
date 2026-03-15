@@ -1,86 +1,241 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
+import BaseLayout from './BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
+import TagPill from '../components/TagPill.astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+interface Props extends CollectionEntry<'blog'>['data'] {
+	headings?: { depth: number; slug: string; text: string }[];
+}
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, createdAt, updatedAt, cover, tags = [], category, toc, headings = [] } = Astro.props;
+
+// 过滤掉深度太大的标题（只显示 h2 和 h3）
+const filteredHeadings = headings.filter((h) => h.depth > 1 && h.depth < 4);
 ---
 
-<html lang="en">
-	<head>
-		<BaseHead title={title} description={description} />
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
-	</head>
-
-	<body>
-		<Header />
-		<main>
-			<article>
+<BaseLayout title={title} description={description} image={cover}>
+	<div class="post-layout">
+		<article class="blog-post">
+			{cover && (
 				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
+					<Image width={1020} height={510} src={cover} alt="" />
 				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<h1>{title}</h1>
-						<hr />
+			)}
+			<div class:list={["post-header", { "no-cover": !cover }]}>
+				<div class="post-date-row">
+					<div class="date-item">
+						<span class="label">发布于：</span>
+						<FormattedDate date={createdAt} />
 					</div>
-					<slot />
+					{updatedAt && (
+						<div class="date-item updated">
+							<span class="label">最后修改：</span>
+							<FormattedDate date={updatedAt} />
+						</div>
+					)}
 				</div>
-			</article>
-		</main>
-		<Footer />
-	</body>
-</html>
+				<h1>{title}</h1>
+				<div class="post-meta-tags">
+					{category && <span class="category-badge">{category}</span>}
+					{tags.length > 0 && tags.map((tag) => <TagPill tag={tag} />)}
+				</div>
+				<hr />
+			</div>
+			<div class="prose">
+				<slot />
+			</div>
+		</article>
+
+		{toc && filteredHeadings.length > 0 && (
+			<aside class="toc-sidebar">
+				<div class="toc-inner">
+					<h3>文章目录</h3>
+					<nav class="toc-nav">
+						<ul>
+							{filteredHeadings.map((h) => (
+								<li class={`depth-${h.depth}`}>
+									<a href={`#${h.slug}`}>{h.text}</a>
+								</li>
+							))}
+						</ul>
+					</nav>
+				</div>
+			</aside>
+		)}
+	</div>
+</BaseLayout>
+
+<style>
+	.post-layout {
+		display: flex;
+		gap: 2rem;
+		width: 100%;
+		max-width: 100%;
+		justify-content: center;
+	}
+
+	.blog-post {
+		flex: 1;
+		min-width: 0;
+		max-width: 800px;
+		margin: 0 auto;
+	}
+
+	.toc-sidebar {
+		width: 250px;
+		flex-shrink: 0;
+		display: none;
+	}
+
+	@media (min-width: 1200px) {
+		.post-layout {
+			justify-content: flex-start;
+		}
+		.toc-sidebar {
+			display: block;
+		}
+	}
+
+	.toc-inner {
+		position: sticky;
+		top: 2rem;
+		background: var(--color-bg-card);
+		border-radius: var(--radius-lg);
+		padding: 1.5rem;
+		box-shadow: var(--shadow-soft);
+		border: 1px solid var(--color-border);
+		max-height: calc(100vh - 4rem);
+		overflow-y: auto;
+	}
+
+	.toc-inner h3 {
+		font-size: 1.1em;
+		margin-bottom: 1rem;
+		border-bottom: 1px dashed var(--color-border);
+		padding-bottom: 0.5rem;
+		color: var(--color-primary);
+	}
+
+	.toc-nav ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.toc-nav li {
+		margin-bottom: 0.5rem;
+		line-height: 1.4;
+	}
+
+	.toc-nav a {
+		font-size: 0.9em;
+		color: var(--color-text-light);
+		transition: all 0.2s;
+		display: block;
+	}
+
+	.toc-nav a:hover {
+		color: var(--color-primary);
+		transform: translateX(4px);
+	}
+
+	.toc-nav li.depth-3 {
+		padding-left: 1rem;
+		font-size: 0.95em;
+	}
+
+	.hero-image {
+		margin-bottom: 2rem;
+	}
+
+	.hero-image :global(img) {
+		width: 100%;
+		height: auto;
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-soft);
+	}
+
+	.post-header {
+		margin-bottom: 2.5rem;
+		text-align: center;
+		padding: 0 1rem;
+	}
+
+	.post-header.no-cover {
+		background: var(--color-bg-card);
+		padding: 3rem 2rem 1.5rem;
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-border);
+		box-shadow: var(--shadow-soft);
+	}
+
+	.post-header h1 {
+		margin: 0.5rem 0 1rem;
+		font-size: 2.5em;
+		color: var(--color-primary);
+	}
+
+	.post-date-row {
+		display: flex;
+		justify-content: center;
+		gap: 1.5rem;
+		margin-bottom: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.date-item {
+		color: var(--color-text-light);
+		font-size: 0.9em;
+		display: flex;
+		align-items: center;
+	}
+
+	.date-item .label {
+		font-weight: 600;
+		margin-right: 0.25rem;
+		opacity: 0.8;
+	}
+
+	.date-item.updated {
+		color: var(--color-primary);
+		opacity: 0.9;
+	}
+
+	.post-meta-tags {
+		display: flex;
+		justify-content: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		margin-top: 1rem;
+	}
+
+	.category-badge {
+		background: var(--color-accent);
+		color: white;
+		padding: 0 0.8rem;
+		height: 24px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 12px;
+		font-size: 0.85em;
+		font-weight: 700;
+		line-height: 1;
+	}
+
+	.prose {
+		max-width: 100%;
+		padding-top: 1rem;
+	}
+
+	@media (max-width: 768px) {
+		.post-header h1 {
+			font-size: 2em;
+		}
+		.post-date-row {
+			gap: 0.75rem;
+		}
+	}
+</style>

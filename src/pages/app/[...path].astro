@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import VueApp from '../../components/vue/VueApp.vue';
+import { SITE_TITLE } from '../../consts';
+
+export function getStaticPaths() {
+	return [
+		{ params: { path: undefined } },
+		{ params: { path: 'tools' } },
+		{ params: { path: 'gallery' } },
+	];
+}
+---
+
+<BaseLayout title={`App - ${SITE_TITLE}`} description="Interactive Vue app">
+	<VueApp client:only="vue" />
+</BaseLayout>

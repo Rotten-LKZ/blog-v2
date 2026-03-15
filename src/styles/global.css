@@ -1,21 +1,48 @@
-/*
-  The CSS in this style tag is based off of Bear Blog's default CSS.
-  https://github.com/HermanMartinus/bearblog/blob/297026a877bc2ab2b3bdfbd6b9f7961c350917dd/templates/styles/blog/default.css
-  License MIT: https://github.com/HermanMartinus/bearblog/blob/master/LICENSE.md
- */
+/* Anime-style (二次元) blog design system */
 
 :root {
-	--accent: #2337ff;
-	--accent-dark: #000d8a;
-	--black: 15, 18, 25;
-	--gray: 96, 115, 159;
-	--gray-light: 229, 233, 240;
-	--gray-dark: 34, 41, 57;
-	--gray-gradient: rgba(var(--gray-light), 50%), #fff;
-	--box-shadow:
-		0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px
-		rgba(var(--gray), 33%);
+	--color-primary: #5DADE2;
+	--color-primary-light: #85C1E9;
+	--color-primary-pale: #D6EAF8;
+	--color-accent: #F8A5C2;
+	--color-bg: #F5F9FF;
+	--color-bg-card: #FFFFFF;
+	--color-text: #2C3E50;
+	--color-text-light: #7F8C8D;
+	--color-border: #E8EEF5;
+	--radius: 12px;
+	--radius-lg: 16px;
+	--shadow-soft: 0 2px 12px rgba(93, 173, 226, 0.1);
+	--shadow-hover: 0 8px 24px rgba(93, 173, 226, 0.18);
+	--sidebar-width: 280px;
 }
+
+html {
+	scrollbar-gutter: stable;
+	overflow-y: scroll;
+}
+
+[data-theme="dark"] {
+	--color-primary: #6BC5F0;
+	--color-primary-light: #8ED4F5;
+	--color-primary-pale: #1A2A3A;
+	--color-accent: #3D2630; /* Much darker, subtle pink for dark mode */
+	--color-bg: #0B1219;
+	--color-bg-card: rgba(26, 39, 53, 0.8);
+	--color-text: #E0E6ED;
+	--color-text-light: #8B9DB0;
+	--color-border: #2A3A4A;
+	--shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.4);
+	--shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+body[data-theme="dark"] {
+	background-image: 
+		radial-gradient(at 0% 0%, rgba(20, 30, 45, 0.4) 0px, transparent 40%),
+		radial-gradient(at 100% 100%, rgba(61, 38, 48, 0.2) 0px, transparent 30%);
+}
+
+/* Fonts */
 @font-face {
 	font-family: "Atkinson";
 	src: url("/fonts/atkinson-regular.woff") format("woff");
@@ -30,112 +57,267 @@
 	font-style: normal;
 	font-display: swap;
 }
+
+/* Animations */
+@keyframes float {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-6px); }
+}
+
+@keyframes sparkle {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: 0.6; transform: scale(0.95); }
+}
+
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+/* Base */
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
 body {
 	font-family: "Atkinson", sans-serif;
 	margin: 0;
 	padding: 0;
-	text-align: left;
-	background: linear-gradient(var(--gray-gradient)) no-repeat;
-	background-size: 100% 600px;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	color: rgb(var(--gray-dark));
-	font-size: 20px;
+	background: var(--color-bg);
+	background-image: 
+		radial-gradient(at 0% 0%, var(--color-primary-pale) 0px, transparent 30%),
+		radial-gradient(at 100% 100%, var(--color-accent) 0px, transparent 20%);
+	background-attachment: fixed;
+	color: var(--color-text);
+	transition: background-color 0.3s ease, color 0.3s ease;
+	font-size: 16px;
 	line-height: 1.7;
+	overflow-wrap: break-word;
+	-webkit-font-smoothing: antialiased;
 }
-main {
-	width: 720px;
-	max-width: calc(100% - 2em);
-	margin: auto;
-	padding: 3em 1em;
+
+/* Typography Enhancements */
+h1, h2, h3, h4, h5, h6 {
+	margin: 0 0 1rem 0;
+	color: var(--color-text);
+	line-height: 1.3;
+	font-weight: 800;
 }
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	margin: 0 0 0.5rem 0;
-	color: rgb(var(--black));
-	line-height: 1.2;
-}
+
 h1 {
-	font-size: 3.052em;
+	font-size: 2.5em;
+	color: var(--color-primary);
+	margin-bottom: 1.5rem;
 }
-h2 {
-	font-size: 2.441em;
-}
-h3 {
-	font-size: 1.953em;
-}
-h4 {
-	font-size: 1.563em;
-}
-h5 {
-	font-size: 1.25em;
-}
-strong,
-b {
+
+h2 { font-size: 1.8em; }
+h3 { font-size: 1.5em; }
+h4 { font-size: 1.25em; }
+h5 { font-size: 1.1em; }
+
+strong, b {
 	font-weight: 700;
 }
+
 a {
-	color: var(--accent);
+	color: var(--color-primary);
+	text-decoration: none;
+	transition: color 0.2s ease;
 }
 a:hover {
-	color: var(--accent);
+	color: var(--color-primary-light);
 }
+
 p {
 	margin-bottom: 1em;
 }
+
+/* Prose (article content) */
 .prose p {
-	margin-bottom: 2em;
+	margin-bottom: 1.5em;
 }
-textarea {
+
+.prose a {
+	color: var(--color-primary);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-color: var(--color-primary-pale);
+	transition: text-decoration-color 0.2s;
+}
+.prose a:hover {
+	text-decoration-color: var(--color-primary);
+}
+
+.prose img {
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-soft);
+}
+
+.prose blockquote {
+	border-left: 4px solid var(--color-accent);
+	background: var(--color-primary-pale);
+	border-radius: 0 var(--radius) var(--radius) 0;
+	padding: 1em 1.25em;
+	margin: 1.5em 0;
+	font-style: italic;
+	color: var(--color-text);
+}
+
+.prose blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+.prose code {
+	background: var(--color-primary-pale);
+	color: var(--color-primary);
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 0.9em;
+}
+
+.prose pre {
+	background: #1e293b;
+	color: #e2e8f0;
+	padding: 1.25em;
+	border-radius: var(--radius);
+	overflow-x: auto;
+	box-shadow: var(--shadow-soft);
+}
+
+.prose pre > code {
+	all: unset;
+}
+
+.prose hr {
+	border: none;
+	height: 2px;
+	background: linear-gradient(90deg, var(--color-primary-pale), var(--color-accent), var(--color-primary-pale));
+	margin: 2em 0;
+	border-radius: 1px;
+}
+
+.prose ul, .prose ol {
+	padding-left: 1.5em;
+}
+
+.prose li {
+	margin-bottom: 0.4em;
+}
+
+.prose table {
 	width: 100%;
+	border-collapse: collapse;
+	margin: 1.5em 0;
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.prose th {
+	background: var(--color-primary-pale);
+	color: var(--color-text);
+	font-weight: 700;
+	padding: 0.75em 1em;
+	text-align: left;
+}
+
+.prose td {
+	padding: 0.75em 1em;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.prose tr:last-child td {
+	border-bottom: none;
+}
+
+/* Form elements */
+textarea, input {
 	font-size: 16px;
+	font-family: inherit;
+	border: 2px solid var(--color-border);
+	border-radius: var(--radius);
+	padding: 0.5em 0.75em;
+	transition: border-color 0.2s;
 }
-input {
-	font-size: 16px;
+textarea:focus, input:focus {
+	outline: none;
+	border-color: var(--color-primary);
 }
-table {
-	width: 100%;
-}
+
+/* Images */
 img {
 	max-width: 100%;
 	height: auto;
-	border-radius: 8px;
+	border-radius: var(--radius);
 }
+
+/* Code */
 code {
-	padding: 2px 5px;
-	background-color: rgb(var(--gray-light));
-	border-radius: 2px;
+	padding: 2px 6px;
+	background-color: var(--color-primary-pale);
+	border-radius: 4px;
+	font-size: 0.9em;
 }
+
 pre {
-	padding: 1.5em;
-	border-radius: 8px;
+	padding: 1.25em;
+	border-radius: var(--radius);
+	overflow-x: auto;
 }
 pre > code {
 	all: unset;
 }
+
+/* Blockquote */
 blockquote {
-	border-left: 4px solid var(--accent);
+	border-left: 4px solid var(--color-accent);
 	padding: 0 0 0 20px;
 	margin: 0;
-	font-size: 1.333em;
-}
-hr {
-	border: none;
-	border-top: 1px solid rgb(var(--gray-light));
-}
-@media (max-width: 720px) {
-	body {
-		font-size: 18px;
-	}
-	main {
-		padding: 1em;
-	}
+	font-size: 1.1em;
 }
 
+hr {
+	border: none;
+	border-top: 1px solid var(--color-border);
+}
+
+table {
+	width: 100%;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+::-webkit-scrollbar-track {
+	background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+	background: var(--color-primary-light);
+	border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: var(--color-primary);
+}
+
+/* Selection */
+::selection {
+	background: var(--color-primary-pale);
+	color: var(--color-text);
+}
+
+/* Accessibility */
 .sr-only {
 	border: 0;
 	padding: 0;
@@ -144,12 +326,17 @@ hr {
 	height: 1px;
 	width: 1px;
 	overflow: hidden;
-	/* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
-	clip: rect(1px 1px 1px 1px);
-	/* maybe deprecated but we need to support legacy browsers */
 	clip: rect(1px, 1px, 1px, 1px);
-	/* modern browsers, clip-path works inwards from each corner */
 	clip-path: inset(50%);
-	/* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
 	white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	body {
+		font-size: 15px;
+	}
+	h1 {
+		font-size: 1.8em;
+	}
 }

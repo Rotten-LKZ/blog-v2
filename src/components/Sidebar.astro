@@ -1,0 +1,191 @@
+---
+import { SITE_OWNER, NAV_LINKS } from '../consts';
+import ThemeToggle from './ThemeToggle.astro';
+---
+
+<aside class="sidebar">
+	<div class="sidebar-inner">
+		<!-- Avatar -->
+		<div class="avatar-wrap">
+			<img src={SITE_OWNER.avatar} alt={SITE_OWNER.name} class="avatar" width="110" height="110" />
+			<div class="avatar-dot dot-1"></div>
+			<div class="avatar-dot dot-2"></div>
+			<div class="avatar-dot dot-3"></div>
+		</div>
+
+		<!-- Name & Bio -->
+		<h2 class="owner-name">{SITE_OWNER.name}</h2>
+		<p class="owner-bio">{SITE_OWNER.bio}</p>
+
+		<!-- Navigation -->
+		<nav class="sidebar-nav">
+			{NAV_LINKS.map((link) => (
+				<a href={link.href} class:list={['nav-link', { active: Astro.url.pathname === link.href || (link.href !== '/' && Astro.url.pathname.startsWith(link.href)) }]}>
+					{link.label}
+				</a>
+			))}
+		</nav>
+
+		<!-- Social Links -->
+		<div class="social-links">
+			{SITE_OWNER.social.github && (
+				<a href={SITE_OWNER.social.github} target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+					<svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+				</a>
+			)}
+			<a href="/rss.xml" target="_blank" aria-label="RSS Feed" title="RSS 订阅">
+				<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
+			</a>
+		</div>
+
+		<!-- Theme Toggle -->
+		<div class="sidebar-theme-toggle">
+			<ThemeToggle />
+		</div>
+	</div>
+</aside>
+
+<style>
+	.sidebar {
+		width: var(--sidebar-width);
+		padding: 2rem 0;
+		position: sticky;
+		top: 0;
+		height: 100vh;
+		flex-shrink: 0;
+	}
+
+	.sidebar-inner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		background: var(--color-bg-card);
+		padding: 2.5rem 1.5rem;
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-soft);
+		border: 1px solid var(--color-border);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		position: sticky;
+		top: 2rem;
+	}
+
+	/* Avatar */
+	.avatar-wrap {
+		position: relative;
+		margin-bottom: 1.5rem;
+	}
+
+	.avatar {
+		width: 110px;
+		height: 110px;
+		border-radius: 50%;
+		border: 4px solid var(--color-primary-pale);
+		object-fit: cover;
+		transition: transform 0.3s ease;
+		animation: float 5s ease-in-out infinite;
+	}
+
+	.avatar:hover {
+		transform: scale(1.05) rotate(5deg);
+	}
+
+	.avatar-dot {
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		animation: sparkle 2.5s ease-in-out infinite;
+	}
+
+	.dot-1 { background: var(--color-primary); top: 5px; right: 5px; animation-delay: 0s; }
+	.dot-2 { background: var(--color-accent); bottom: 12px; left: -2px; animation-delay: 0.8s; }
+	.dot-3 { background: var(--color-primary-light); top: 50px; right: -8px; animation-delay: 1.6s; }
+
+	.owner-name {
+		font-size: 1.4em;
+		margin: 0.5rem 0 0.5rem;
+		font-weight: 800;
+		color: var(--color-primary);
+		letter-spacing: 0.5px;
+	}
+
+	.owner-bio {
+		color: var(--color-text-light);
+		font-size: 0.9em;
+		margin: 0 0 2rem;
+		line-height: 1.6;
+		padding: 0 0.5rem;
+	}
+
+	.sidebar-nav {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		gap: 8px;
+		margin-bottom: 2rem;
+	}
+
+	.nav-link {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.7rem 1rem;
+		border-radius: var(--radius);
+		color: var(--color-text);
+		font-size: 0.95em;
+		font-weight: 600;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		border: 1px solid transparent;
+	}
+
+	.nav-link:hover {
+		background: var(--color-primary-pale);
+		color: var(--color-primary);
+		transform: translateX(4px);
+	}
+
+	.nav-link.active {
+		background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+		color: white;
+		box-shadow: 0 4px 12px rgba(93, 173, 226, 0.3);
+	}
+
+	.social-links {
+		display: flex;
+		gap: 1rem;
+		padding-top: 1.5rem;
+		border-top: 1px dashed var(--color-border);
+		width: 100%;
+		justify-content: center;
+	}
+
+	.social-links a {
+		color: var(--color-text-light);
+		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background: var(--color-bg);
+	}
+
+	.social-links a:hover {
+		color: var(--color-primary);
+		transform: translateY(-3px);
+		background: var(--color-primary-pale);
+	}
+
+	.sidebar-theme-toggle {
+		margin-top: 1.5rem;
+	}
+
+	@media (max-width: 768px) {
+		.sidebar {
+			display: none;
+		}
+	}
+</style>

@@ -1,0 +1,34 @@
+[
+    {
+        "url": "https://www.yunyoujun.cn/",
+        "avatar": "https://www.yunyoujun.cn/images/avatar.jpg",
+        "name": "云游君",
+        "blog": "云游君的小站",
+        "desc": "希望能成为一个有趣的人",
+        "color": "#4EAAFF"
+    },
+    {
+        "url": "https://blog.hikariyo.net/",
+        "avatar": "https://hikariyo.net/avatar.jpg",
+        "name": "生理盐水",
+        "blog": "喵喵小窝",
+        "desc": "前 OIer / 现 XCPCer",
+        "color": "#00C4B6"
+    },
+    {
+        "url": "http://www.wzcwzc.cool/",
+        "avatar": "https://picture-1304336638.cos.ap-nanjing.myqcloud.com/pic/v2-0f0669c7fa7565ba6495e90c994cdbe7_720w%E5%B7%B2%E5%8E%BB%E5%BA%95.png",
+        "name": "四叶草",
+        "blog": "四叶草の博客",
+        "desc": "很多年以后遇见很多和你一样的人",
+        "color": "#DF295F"
+    },
+    {
+        "url": "https://xiangshu233.cn",
+        "avatar": "https://fastly.jsdelivr.net/gh/xiangshu233/blogAssets@0.2/assets/images/avatar-1.jpg",
+        "name": "傲慢或香橙",
+        "blog": "傲慢或香橙",
+        "desc": "随知修行乃当务之急，然怠惰度日至今",
+        "color": "#b69e82"
+    }
+]

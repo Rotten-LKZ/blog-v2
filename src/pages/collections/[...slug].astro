@@ -1,0 +1,310 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../layouts/BlogPost.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import TagPill from '../../components/TagPill.astro';
+import { Image } from 'astro:assets';
+
+export async function getStaticPaths() {
+	const metas = await getCollection('collectionMeta');
+	const allCollectedPosts = await getCollection('collectedPosts');
+
+	const paths = [];
+
+	for (const meta of metas) {
+		const collectionId = meta.id; 
+		const folderName = collectionId.split('/')[0];
+
+		// 1. Path for collection landing page
+		paths.push({
+			params: { slug: folderName },
+			props: { type: 'landing', meta, allCollectionPosts: allCollectedPosts.filter(p => p.id.startsWith(folderName + '/')) },
+		});
+
+		// 2. Paths for individual posts
+		const collectionPosts = allCollectedPosts.filter(p => p.id.startsWith(folderName + '/'));
+		
+		for (const post of collectionPosts) {
+			const postFileName = post.id.split('/').pop();
+			if (postFileName === 'meta') continue;
+
+			paths.push({
+				params: { slug: `${folderName}/${postFileName}` },
+				props: { type: 'post', post, meta, allCollectionPosts: collectionPosts },
+			});
+		}
+	}
+
+	return paths;
+}
+
+const { type, meta, post, allCollectionPosts } = Astro.props;
+
+// Render content in frontmatter
+let Content;
+let headings = [];
+if (type === 'post' && post) {
+	const rendered = await render(post);
+	Content = rendered.Content;
+	headings = rendered.headings;
+}
+
+// Navigation Logic for Posts
+let prevPost = null;
+let nextPost = null;
+const folderName = meta?.id.split('/')[0];
+
+if (type === 'post' && meta) {
+	const flatPosts = meta.data.structure.flatMap(chapter => 
+		chapter.posts.map(p => {
+			const postEntry = (allCollectionPosts || []).find(cp => cp.id.endsWith(`/${p.slug}`));
+			return {
+				slug: p.slug,
+				title: p.title || postEntry?.data.title || p.slug,
+				url: `/collections/${folderName}/${p.slug}`
+			};
+		})
+	);
+
+	const currentFileName = post.id.split('/').pop();
+	const currentIndex = flatPosts.findIndex(p => p.slug === currentFileName);
+
+	if (currentIndex > 0) prevPost = flatPosts[currentIndex - 1];
+	if (currentIndex < flatPosts.length - 1) nextPost = flatPosts[currentIndex + 1];
+}
+
+const getDisplayTitle = (postSlug: string, postData: any) => {
+	if (!meta) return postData.title;
+	for (const chapter of meta.data.structure) {
+		const found = chapter.posts.find(p => p.slug === postSlug);
+		if (found?.title) return found.title;
+	}
+	return postData.title;
+};
+---
+
+{type === 'landing' ? (
+	<BaseLayout title={meta.data.title} description={meta.data.description}>
+		<div class="collection-landing">
+			{meta.data.cover && (
+				<div class="collection-cover">
+					<Image src={meta.data.cover} alt={meta.data.title} width={1200} height={600} />
+				</div>
+			)}
+			<div class="collection-header">
+				<div class="collection-meta-top">
+					<span class="collection-indicator-pill">系列合集</span>
+				</div>
+				<h1>{meta.data.title}</h1>
+				<div class="collection-meta-bottom">
+					{meta.data.category && <span class="category-badge">{meta.data.category}</span>}
+					<div class="collection-tags">
+						{meta.data.tags.map(tag => <TagPill tag={tag} />)}
+					</div>
+				</div>
+				<p class="description">{meta.data.description}</p>
+			</div>
+
+			<div class="collection-structure">
+				<h2>合集章节目录</h2>
+				{meta.data.structure.map((chapter) => (
+					<div class="chapter-box">
+						<h3>{chapter.chapterName}</h3>
+						<ul class="post-list">
+							{chapter.posts.map((p) => {
+								const postEntry = (allCollectionPosts || []).find(cp => cp.id.endsWith(`/${p.slug}`));
+								return (
+									<li>
+										<a href={`/collections/${meta.id.split('/')[0]}/${p.slug}`}>
+											{p.title || postEntry?.data.title || p.slug}
+										</a>
+									</li>
+								);
+							})}
+						</ul>
+					</div>
+				))}
+			</div>
+		</div>
+	</BaseLayout>
+) : (
+	<BlogPost {...post.data} title={getDisplayTitle(post.id.split('/').pop()!, post.data)} headings={headings}>
+		<div class="post-content-container">
+			{meta.data.showTocAbove && (
+				<div class="collection-quick-nav">
+					<details open>
+						<summary>合集：{meta.data.title}</summary>
+						<div class="nav-inner">
+							{meta.data.structure.map(chapter => (
+								<div class="nav-chapter">
+									<h4>{chapter.chapterName}</h4>
+									<ul>
+										{chapter.posts.map(p => (
+											<li class={post.id.endsWith(`/${p.slug}`) ? 'active' : ''}>
+												<a href={`/collections/${meta.id.split('/')[0]}/${p.slug}`}>
+													{p.title || p.slug}
+												</a>
+											</li>
+										))}
+									</ul>
+								</div>
+							))}
+						</div>
+					</details>
+				</div>
+			)}
+			
+			<div class="post-content-body">
+				{Content && <Content />}
+			</div>
+		</div>
+
+		<nav class="collection-pagination">
+			<div class="pagination-inner">
+				{prevPost ? (
+					<a href={prevPost.url} class="pagination-link prev">
+						<span class="label">← 上一篇</span>
+						<span class="title">{prevPost.title}</span>
+					</a>
+				) : <div class="spacer"></div>}
+
+				{nextPost ? (
+					<a href={nextPost.url} class="pagination-link next">
+						<span class="label">下一篇 →</span>
+						<span class="title">{nextPost.title}</span>
+					</a>
+				) : <div class="spacer"></div>}
+			</div>
+		</nav>
+	</BlogPost>
+)}
+
+<style>
+	.collection-landing { max-width: 900px; margin: 0 auto; }
+	.collection-cover img { width: 100%; height: auto; border-radius: var(--radius-lg); margin-bottom: 2rem; box-shadow: var(--shadow-soft); }
+	
+	.collection-header { text-align: center; margin-bottom: 3rem; }
+	.collection-header h1 { font-size: 3em; margin: 0.5rem 0; color: var(--color-primary); }
+	
+	.collection-meta-top {
+		margin-bottom: 0.75rem;
+	}
+
+	.collection-indicator-pill {
+		background: var(--color-primary-pale);
+		color: var(--color-primary);
+		padding: 0 0.6rem;
+		height: 24px;
+		display: inline-flex;
+		align-items: center;
+		border-radius: 6px;
+		font-size: 0.75em;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+	}
+
+	.collection-meta-bottom {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 1.25rem;
+		flex-wrap: wrap;
+	}
+
+	.category-badge {
+		background: var(--color-accent);
+		color: white;
+		padding: 0 0.8rem;
+		height: 24px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 12px;
+		font-size: 0.8em;
+		font-weight: 700;
+		line-height: 1;
+	}
+
+	.collection-tags {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.description { font-size: 1.2em; color: var(--color-text-light); margin-top: 1rem; }
+
+	.collection-structure h2 { border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem; margin-bottom: 2rem; }
+	.chapter-box { margin-bottom: 2rem; }
+	.chapter-box h3 { font-size: 1.4em; color: var(--color-primary); margin-bottom: 1rem; }
+	.post-list { list-style: none; padding: 0; }
+	.post-list li { padding: 0.75rem 1rem; border-bottom: 1px dashed var(--color-border); }
+	.post-list a { color: var(--color-text); font-weight: 600; transition: color 0.2s; }
+	.post-list a:hover { color: var(--color-primary); }
+
+	/* Post internal nav */
+	.collection-quick-nav {
+		background: var(--color-primary-pale);
+		border-radius: var(--radius);
+		padding: 1.25rem;
+		margin-bottom: 2.5rem;
+		border: 1px solid var(--color-primary-light);
+		max-width: 100%;
+		overflow: hidden;
+	}
+	.nav-inner {
+		margin-top: 1.25rem;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 1.25rem;
+	}
+	.nav-chapter h4 { font-size: 0.85em; color: var(--color-text-light); text-transform: uppercase; margin-bottom: 0.5rem; }
+	.nav-chapter ul { list-style: none; padding: 0; font-size: 0.9em; }
+	.nav-chapter li.active a { color: var(--color-primary); font-weight: 800; }
+
+	/* Pagination */
+	.collection-pagination {
+		background: var(--color-bg-card);
+		border-top: 1px solid var(--color-border);
+		margin: 4rem -2.5rem -2.5rem -2.5rem;
+		padding: 2.5rem;
+		border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+	}
+
+	.pagination-inner {
+		display: flex;
+		justify-content: space-between;
+		gap: 1.5rem;
+		width: 100%;
+	}
+
+	.pagination-link {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		padding: 1.25rem;
+		background: var(--color-bg);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius);
+		transition: all 0.3s ease;
+		max-width: 48%;
+		text-decoration: none;
+	}
+	.pagination-link:hover { border-color: var(--color-primary); transform: translateY(-3px); box-shadow: var(--shadow-soft); }
+	.pagination-link.next { text-align: right; align-items: flex-end; }
+	.label { font-size: 0.75em; font-weight: 700; color: var(--color-text-light); margin-bottom: 0.4rem; }
+	.title { font-weight: 800; color: var(--color-primary); font-size: 1.1em; line-height: 1.4; }
+	.spacer { flex: 1; }
+
+	@media (max-width: 1024px) {
+		.collection-pagination { margin: 3rem -1.5rem -1.5rem -1.5rem; padding: 2rem 1.5rem; }
+	}
+
+	@media (max-width: 768px) {
+		.collection-pagination { margin: 2.5rem -1rem -1.5rem -1rem; padding: 1.5rem 1rem; }
+		.pagination-inner { flex-direction: column; gap: 1rem; }
+		.pagination-link { max-width: 100%; }
+		.collection-header h1 { font-size: 2.2em; }
+	}
+</style>

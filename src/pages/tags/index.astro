@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE_TITLE } from '../../consts';
+
+const allPosts = await getCollection('blog');
+const allCollectedPosts = await getCollection('collectedPosts');
+
+// Combine all tags from both collections
+const allTags = [
+	...allPosts.flatMap((post) => post.data.tags || []),
+	...allCollectedPosts.flatMap((post) => post.data.tags || [])
+];
+
+const uniqueTags = [...new Set(allTags)];
+
+// Create tag objects with counts
+const tagsWithCounts = uniqueTags.map(tag => {
+	const count = allTags.filter(t => t === tag).length;
+	return { name: tag, count };
+});
+
+// Sort: highest count first
+const sortedTags = tagsWithCounts.sort((a, b) => b.count - a.count);
+---
+
+<BaseLayout title={`全部标签 - ${SITE_TITLE}`} description="博客的所有文章标签">
+	<div class="page-header">
+		<h1 class="page-title">全部标签</h1>
+	</div>
+
+	<div class="tags-cloud">
+		{sortedTags.map((tag) => (
+			<a href={`/tags/${tag.name}`} class="tag-item">
+				<span class="tag-hash">#</span>{tag.name} <span class="tag-count">({tag.count})</span>
+			</a>
+		))}
+	</div>
+</BaseLayout>
+
+<style>
+	.page-header {
+		margin-bottom: 2rem;
+		text-align: center;
+	}
+	.page-title {
+		font-size: 2.5em;
+		margin: 0;
+		color: var(--color-primary);
+	}
+	.tags-cloud {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		justify-content: center;
+		padding: 2rem;
+		background: var(--color-bg-card);
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-border);
+		box-shadow: var(--shadow-soft);
+	}
+	.tag-item {
+		display: inline-block;
+		padding: 0.5rem 1rem;
+		background: var(--color-primary-pale);
+		color: var(--color-primary);
+		border-radius: 20px;
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.2s;
+	}
+	.tag-item:hover {
+		background: var(--color-primary);
+		color: white;
+		transform: translateY(-2px);
+	}
+	.tag-hash {
+		opacity: 0.5;
+		margin-right: 0.2rem;
+	}
+	.tag-count {
+		font-size: 0.8em;
+		opacity: 0.7;
+		margin-left: 0.2rem;
+	}
+	.tag-item:hover .tag-hash,
+	.tag-item:hover .tag-count {
+		opacity: 0.9;
+	}
+</style>

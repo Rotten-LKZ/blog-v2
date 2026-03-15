@@ -1,49 +1,239 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BlogCard from '../components/BlogCard.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+// --- Logic to merge blog and collections ---
+const blogPosts = await getCollection('blog');
+const collectionMetas = await getCollection('collectionMeta');
+const allCollectedPosts = await getCollection('collectedPosts');
+
+let displayItems = blogPosts.map(post => ({
+	type: 'blog',
+	data: post.data,
+	slug: post.id,
+	date: post.data.createdAt,
+	url: `/blog/${post.id}/`
+}));
+
+for (const meta of collectionMetas) {
+	const folderName = meta.id.split('/')[0];
+	const relatedPosts = allCollectedPosts.filter(p => p.id.startsWith(folderName + '/'));
+	
+	if (meta.data.isCollapsed) {
+		// Get latest date from its posts
+		const latestDate = new Date(Math.max(...relatedPosts.map(p => (p.data.updatedAt || p.data.createdAt).getTime())));
+		displayItems.push({
+			type: 'collection',
+			data: {
+				...meta.data,
+				createdAt: latestDate, // Use latest date for display
+			},
+			slug: folderName,
+			date: latestDate,
+			url: `/collections/${folderName}/`
+		});
+	} else {
+		// Add individual posts
+		relatedPosts.forEach(post => {
+			const postFileName = post.id.split('/').pop();
+			displayItems.push({
+				type: 'collected-post',
+				data: post.data,
+				slug: `${folderName}/${postFileName}`,
+				date: post.data.createdAt,
+				url: `/collections/${folderName}/${postFileName}`
+			});
+		});
+	}
+}
+
+const posts = displayItems
+	.sort((a, b) => b.date.valueOf() - a.date.valueOf())
+	.slice(0, 6);
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This template
-				serves as a lightweight, minimally-styled starting point for anyone looking to build a personal
-				website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to
-				<a href="https://docs.astro.build/">read the docs</a>
-				or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a>
-				by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
-</html>
+<BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
+	<section class="hero">
+		<div class="hero-content">
+			<h1>欢迎来到我的博客</h1>
+			<p class="hero-sub">记录关于编程、二次元和生活的点滴~</p>
+			<div class="hero-badges">
+				<span class="badge">🚀 技术</span>
+				<span class="badge">🎨 设计</span>
+				<span class="badge">🍵 日常</span>
+			</div>
+		</div>
+	</section>
+
+	<section class="posts-section">
+		<div class="section-header">
+			<h2 class="section-title">最新文章</h2>
+			<a href="/blog" class="view-all-link-top">查看全部 &rarr;</a>
+		</div>
+		<div class="posts-grid">
+			{posts.map((post, i) => (
+				<div class="post-wrapper" style={`animation: fadeInUp 0.6s ease both ${i * 0.1}s`}>
+					<BlogCard
+						title={post.data.title}
+						description={post.data.description}
+						createdAt={post.data.createdAt}
+						cover={post.data.cover}
+						slug={post.slug}
+						tags={post.data.tags}
+						category={post.data.category}
+						isCollection={post.type === 'collection'}
+						customUrl={post.url}
+					/>
+				</div>
+			))}
+		</div>
+	</section>
+</BaseLayout>
+
+<style>
+	.hero {
+		position: relative;
+		padding: 4rem 1rem;
+		margin-bottom: 2rem;
+		text-align: center;
+		overflow: hidden;
+		background: var(--color-primary-pale);
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-border);
+	}
+
+	.hero::before {
+		content: '';
+		position: absolute;
+		top: -50%;
+		left: -50%;
+		width: 200%;
+		height: 200%;
+		background: radial-gradient(circle, var(--color-accent) 0%, transparent 60%);
+		opacity: 0.1;
+		animation: spin 20s linear infinite;
+	}
+
+	.hero-content {
+		position: relative;
+		z-index: 1;
+		animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+	}
+
+	.hero h1 {
+		font-size: 3em;
+		margin-bottom: 0.5rem;
+		letter-spacing: -1px;
+		color: var(--color-primary);
+	}
+
+	.hero-sub {
+		color: var(--color-text-light);
+		font-size: 1.2em;
+		margin: 0 0 1.5rem;
+		font-weight: 500;
+	}
+
+	.hero-badges {
+		display: flex;
+		justify-content: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.badge {
+		padding: 0.3rem 0.8rem;
+		background: white;
+		border-radius: 20px;
+		font-size: 0.85em;
+		font-weight: 600;
+		color: var(--color-primary);
+		box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+		border: 1px solid var(--color-border);
+	}
+
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-end;
+		margin-bottom: 1.5rem;
+		padding: 0 0.5rem;
+	}
+
+	.section-title {
+		font-size: 1.6em;
+		margin: 0;
+		font-weight: 800;
+		color: var(--color-text);
+		position: relative;
+	}
+
+	.section-title::after {
+		content: '';
+		position: absolute;
+		bottom: -4px;
+		left: 0;
+		width: 40px;
+		height: 4px;
+		background: var(--color-primary);
+		border-radius: 2px;
+	}
+
+	.posts-grid {
+		column-count: 3;
+		column-gap: 1.5rem;
+		width: 100%;
+	}
+
+	.post-wrapper {
+		break-inside: avoid;
+		margin-bottom: 1.5rem;
+		display: block;
+	}
+
+	@media (max-width: 1100px) {
+		.posts-grid {
+			column-count: 2;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.posts-grid {
+			column-count: 1;
+		}
+	}
+
+	.view-all-link-top {
+		font-size: 0.95em;
+		font-weight: 600;
+		color: var(--color-primary);
+		transition: transform 0.2s;
+	}
+
+	.view-all-link-top:hover {
+		transform: translateX(4px);
+		color: var(--color-primary-light);
+	}
+
+	@media (max-width: 768px) {
+		.hero {
+			padding: 3rem 1rem;
+		}
+		
+		.hero h1 {
+			font-size: 2.2em;
+		}
+
+		.posts-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.section-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.75rem;
+		}
+	}
+</style>
