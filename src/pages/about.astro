@@ -1,28 +1,22 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE_TITLE } from '../consts';
+import ImageZoom from '../components/ImageZoom.astro';
+import * as aboutContent from '../content/about.md';
+
+const { Content } = aboutContent;
 ---
 
-<BaseLayout title={`About - ${SITE_TITLE}`} description="About me">
+<BaseLayout title={`关于 - ${SITE_TITLE}`} description="关于我&关于此站">
 	<article class="about-page">
-		<h1>About Me</h1>
+		<h1>关于我 & 关于此站</h1>
 		<div class="prose">
-			<p>
-				Hi there! I'm a developer who loves building things for the web.
-				When I'm not coding, you can find me watching anime or exploring new technologies.
-			</p>
-			<p>
-				This blog is built with <a href="https://astro.build/">Astro</a> and Vue,
-				featuring a cute anime-inspired design. I write about coding, tech, and
-				whatever else catches my interest.
-			</p>
-			<p>
-				Feel free to browse around, read some posts, and check out the interactive
-				demos in the App section!
-			</p>
+			<Content />
 		</div>
 	</article>
+	<ImageZoom />
 </BaseLayout>
+
 
 <style>
 	.about-page {

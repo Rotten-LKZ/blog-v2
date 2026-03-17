@@ -58,11 +58,11 @@ const posts = displayItems
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
 	<section class="hero">
 		<div class="hero-content">
-			<h1>欢迎来到我的博客</h1>
-			<p class="hero-sub">记录关于编程、二次元和生活的点滴~</p>
+			<h1 lang="ja">ようこそ、RotCool の世界へ</h1>
+			<p class="hero-sub">想要跟你讲述我的一切！欢迎找我聊天！</p>
 			<div class="hero-badges">
-				<span class="badge">🚀 技术</span>
-				<span class="badge">🎨 设计</span>
+				<span class="badge">😴 摆烂</span>
+				<span class="badge">📝 学习</span>
 				<span class="badge">🍵 日常</span>
 			</div>
 		</div>
@@ -71,7 +71,10 @@ const posts = displayItems
 	<section class="posts-section">
 		<div class="section-header">
 			<h2 class="section-title">最新文章</h2>
-			<a href="/blog" class="view-all-link-top">查看全部 &rarr;</a>
+			<a href="/blog" class="view-all-link-top">
+				<span>查看全部</span>
+				<span class="arrow-icon">&rarr;</span>
+			</a>
 		</div>
 		<div class="posts-grid">
 			{posts.map((post, i) => (
@@ -158,7 +161,7 @@ const posts = displayItems
 	.section-header {
 		display: flex;
 		justify-content: space-between;
-		align-items: flex-end;
+		align-items: center; /* 关键：从 flex-end 改为 center 确保两端垂直轴中心对齐 */
 		margin-bottom: 1.5rem;
 		padding: 0 0.5rem;
 	}
@@ -210,7 +213,18 @@ const posts = displayItems
 		font-size: 0.95em;
 		font-weight: 600;
 		color: var(--color-primary);
-		transition: transform 0.2s;
+		transition: all 0.2s;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		/* 移除强制的 line-height: 1，因为它会切断字体默认的上下安全区导致居中失效 */
+		padding: 0.2rem 0;
+	}
+
+	.arrow-icon {
+		/* 通过相对定位或微小内边距人工抵消大多数中文字体基线偏低导致箭头看起来偏高的问题 */
+		transform: translateY(1px);
+		font-family: sans-serif; /* 强制使用无衬线字体提高箭头渲染稳定性 */
 	}
 
 	.view-all-link-top:hover {

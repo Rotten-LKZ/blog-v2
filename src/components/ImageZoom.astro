@@ -12,30 +12,22 @@ import 'photoswipe/dist/photoswipe.css';
 
     images.forEach((img) => {
       if (!(img instanceof HTMLImageElement)) return;
-      
-      // If image is already wrapped in an anchor, don't double-handle unless it's ours
       if (img.closest('a') && !img.closest('.pswp-gallery')) return;
-
       img.style.cursor = 'zoom-in';
-      
-      // Add a wrapper if we want to show an EXIF badge on the image itself
-      // For now, let's stick to the lightbox for the detailed EXIF view
     });
 
     const lightbox = new PhotoSwipeLightbox({
       gallery: '.prose',
       children: 'img',
       pswpModule: () => import('photoswipe'),
-      // Secondary zoom level
       secondaryZoomLevel: 2,
       maxZoomLevel: 4,
-      // Animation durations
       showHideAnimationType: 'zoom',
       imageClickAction: 'zoom',
       bgOpacity: 0.9,
     });
 
-    // Handle getting image dimensions
+    // Handle getting image dimensions and captions
     lightbox.addFilter('itemData', (itemData) => {
       const img = itemData.element as HTMLImageElement;
       if (img) {
@@ -43,13 +35,34 @@ import 'photoswipe/dist/photoswipe.css';
         itemData.w = img.naturalWidth || Number(img.getAttribute('width')) || 0;
         itemData.h = img.naturalHeight || Number(img.getAttribute('height')) || 0;
         itemData.msrc = img.src;
-        itemData.alt = img.alt;
+        // Use alt text as caption
+        itemData.caption = img.alt || '';
       }
       return itemData;
     });
 
-    // Add EXIF button to the toolbar
+    // Add Caption to the bottom
     lightbox.on('uiRegister', () => {
+      lightbox.pswp?.ui?.registerElement({
+        name: 'custom-caption',
+        order: 9,
+        isButton: false,
+        appendTo: 'root',
+        html: '',
+        onInit: (el, pswp) => {
+          pswp.on('change', () => {
+            const currSlide = pswp.currSlide;
+            if (currSlide && currSlide.data.caption) {
+              el.innerHTML = `<div class="pswp__custom-caption-content">${currSlide.data.caption}</div>`;
+              el.style.display = 'block';
+            } else {
+              el.style.display = 'none';
+            }
+          });
+        }
+      });
+
+      // Add EXIF button
       lightbox.pswp?.ui?.registerElement({
         name: 'exif-button',
         ariaLabel: 'Show EXIF information',
@@ -83,14 +96,12 @@ import 'photoswipe/dist/photoswipe.css';
         return;
       }
 
-      // Show loading state or just fetch
       try {
         const data = await exifr.parse(img.src, {
           pick: ['Make', 'Model', 'ExposureTime', 'FNumber', 'ISO', 'FocalLength', 'DateTimeOriginal', 'LensModel', 'Software', 'ApertureValue', 'ShutterSpeedValue']
         });
 
         if (!data) {
-          // You might want a toast instead of an alert
           showNoExifMessage(pswp);
           return;
         }
@@ -140,7 +151,6 @@ import 'photoswipe/dist/photoswipe.css';
         
         pswp.container.appendChild(exifContainer);
       } catch (err) {
-        console.error('Error fetching EXIF:', err);
         showNoExifMessage(pswp);
       }
     }
@@ -161,10 +171,41 @@ import 'photoswipe/dist/photoswipe.css';
 </script>
 
 <style is:global>
+  /* Caption Styles */
+  .pswp__custom-caption-content {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    max-width: 80%;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    animation: pswp-fade-in 0.3s ease-out;
+  }
+
+  /* Markdown Captions in Prose */
+  .prose img + em,
+  .prose img + span {
+    display: block;
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--color-text-light);
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
   .pswp__exif-container {
     position: absolute;
     top: 20px;
-    right: 70px; /* Avoid toolbar buttons */
+    right: 70px;
     background: rgba(0, 0, 0, 0.75);
     color: #eee;
     padding: 15px;
@@ -208,7 +249,7 @@ import 'photoswipe/dist/photoswipe.css';
   }
 
   @keyframes pswp-fade-in {
-    from { opacity: 0; transform: translateY(-10px); }
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
@@ -220,13 +261,5 @@ import 'photoswipe/dist/photoswipe.css';
   .prose img:hover {
     box-shadow: 0 10px 25px rgba(93, 173, 226, 0.2);
     transform: translateY(-2px);
-  }
-
-  /* PhotoSwipe UI adjustments */
-  .pswp__button--exif-button {
-      opacity: 0.75;
-  }
-  .pswp__button--exif-button:hover {
-      opacity: 1;
   }
 </style>
