@@ -29,73 +29,24 @@
 						</a>
 					</div>
 				</div>
-
-				<!-- 首页 -->
-				<div v-else-if="currentTab === 'home'" :key="'home'" class="tab-panel">
-					<h2>Vue 应用首页</h2>
-					<p>这是一个运行在 Astro 内部的 Vue 单页应用 (SPA)。使用上方的标签在不同模块间导航。</p>
-					<p>这展示了如何通过嵌入完整的 Vue 组件，为您的 Astro 博客增加丰富的交互功能。</p>
-				</div>
-
-				<!-- 工具 -->
-				<div v-else-if="currentTab === 'tools'" :key="'tools'" class="tab-panel">
-					<h2>交互工具箱</h2>
-					<div class="tool-card">
-						<h3>调色盘</h3>
-						<div class="color-demo">
-							<input type="color" v-model="pickedColor" class="color-input" />
-							<span class="color-value" :style="{ color: pickedColor }">{{ pickedColor }}</span>
-						</div>
-					</div>
-					<div class="tool-card">
-						<h3>文本统计</h3>
-						<textarea
-							v-model="textInput"
-							placeholder="在此处输入文字..."
-							class="text-area"
-						></textarea>
-						<p class="text-stats">
-							字符数: <strong>{{ textInput.length }}</strong> |
-							单词数: <strong>{{ wordCount }}</strong>
-						</p>
-					</div>
-				</div>
-
-				<!-- 画廊 -->
-				<div v-else-if="currentTab === 'gallery'" :key="'gallery'" class="tab-panel">
-					<h2>交互画廊</h2>
-					<p>这是一个占位画廊区域。您可以在这里展示您的插画或摄影作品！</p>
-					<div class="gallery-grid">
-						<div v-for="n in 6" :key="n" class="gallery-item">
-							<div class="gallery-placeholder">{{ n }}</div>
-						</div>
-					</div>
-				</div>
+                
+                <!-- 其他占位 Tab (如需恢复，在此处添加 v-else-if) -->
 			</transition>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import friendsData from '../../data/friends.json';
 
+// 目前仅保留友链，未来可在此扩展
 const tabs = [
 	{ id: 'friends', label: '友链' },
-	{ id: 'home', label: '首页' },
-	{ id: 'tools', label: '工具' },
-	{ id: 'gallery', label: '画廊' },
 ];
 
 const friends = ref(friendsData);
 const currentTab = ref('friends');
-const pickedColor = ref('#5DADE2');
-const textInput = ref('');
-
-const wordCount = computed(() => {
-	const trimmed = textInput.value.trim();
-	return trimmed ? trimmed.split(/\s+/).length : 0;
-});
 
 const switchTab = (tabId: string) => {
 	currentTab.value = tabId;
@@ -123,7 +74,7 @@ onMounted(() => {
 
 <style scoped>
 .vue-app {
-	min-height: 600px;
+	min-height: 500px;
 }
 
 .section-desc {
@@ -247,83 +198,5 @@ onMounted(() => {
 .tab-panel h2 {
 	margin-bottom: 0.5rem;
 	color: var(--color-primary);
-}
-
-.tool-card {
-	background: var(--color-bg-card);
-	border-radius: 12px;
-	padding: 1.25rem;
-	margin-bottom: 1rem;
-	box-shadow: var(--shadow-soft);
-	border: 1px solid var(--color-border);
-}
-
-.tool-card h3 {
-	margin: 0 0 0.75rem;
-	font-size: 1.1em;
-}
-
-.color-demo {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-}
-
-.color-input {
-	width: 50px;
-	height: 40px;
-	border: 2px solid var(--color-border);
-	border-radius: 8px;
-	cursor: pointer;
-	padding: 2px;
-}
-
-.color-value {
-	font-weight: 700;
-	font-size: 1.1em;
-	font-family: monospace;
-}
-
-.text-area {
-	width: 100%;
-	min-height: 80px;
-	padding: 0.75rem;
-	border: 2px solid var(--color-border);
-	border-radius: 8px;
-	font-family: inherit;
-	font-size: 0.95em;
-	resize: vertical;
-	background: var(--color-bg);
-	color: var(--color-text);
-}
-
-.text-area:focus {
-	outline: none;
-	border-color: var(--color-primary);
-}
-
-.text-stats {
-	margin: 0.5rem 0 0;
-	color: var(--color-text-light);
-	font-size: 0.9em;
-}
-
-.gallery-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-	gap: 1rem;
-	margin-top: 1rem;
-}
-
-.gallery-placeholder {
-	aspect-ratio: 1;
-	background: linear-gradient(135deg, var(--color-primary-pale), var(--color-accent));
-	border-radius: 12px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 1.5em;
-	font-weight: 700;
-	color: white;
 }
 </style>
