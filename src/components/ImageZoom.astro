@@ -1,0 +1,232 @@
+---
+import 'photoswipe/dist/photoswipe.css';
+---
+
+<script>
+  import PhotoSwipeLightbox from 'photoswipe/lightbox';
+  import exifr from 'exifr';
+
+  const initPhotoSwipe = () => {
+    const images = document.querySelectorAll('.prose img');
+    if (images.length === 0) return;
+
+    images.forEach((img) => {
+      if (!(img instanceof HTMLImageElement)) return;
+      
+      // If image is already wrapped in an anchor, don't double-handle unless it's ours
+      if (img.closest('a') && !img.closest('.pswp-gallery')) return;
+
+      img.style.cursor = 'zoom-in';
+      
+      // Add a wrapper if we want to show an EXIF badge on the image itself
+      // For now, let's stick to the lightbox for the detailed EXIF view
+    });
+
+    const lightbox = new PhotoSwipeLightbox({
+      gallery: '.prose',
+      children: 'img',
+      pswpModule: () => import('photoswipe'),
+      // Secondary zoom level
+      secondaryZoomLevel: 2,
+      maxZoomLevel: 4,
+      // Animation durations
+      showHideAnimationType: 'zoom',
+      imageClickAction: 'zoom',
+      bgOpacity: 0.9,
+    });
+
+    // Handle getting image dimensions
+    lightbox.addFilter('itemData', (itemData) => {
+      const img = itemData.element as HTMLImageElement;
+      if (img) {
+        itemData.src = img.src;
+        itemData.w = img.naturalWidth || Number(img.getAttribute('width')) || 0;
+        itemData.h = img.naturalHeight || Number(img.getAttribute('height')) || 0;
+        itemData.msrc = img.src;
+        itemData.alt = img.alt;
+      }
+      return itemData;
+    });
+
+    // Add EXIF button to the toolbar
+    lightbox.on('uiRegister', () => {
+      lightbox.pswp?.ui?.registerElement({
+        name: 'exif-button',
+        ariaLabel: 'Show EXIF information',
+        order: 8,
+        isButton: true,
+        html: '<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 32 32" width="32" height="32"><path d="M16 3C8.832 3 3 8.832 3 16s5.832 13 13 13 13-5.832 13-13S23.168 3 16 3zm0 2c6.086 0 11 4.914 11 11s-4.914 11-11 11S5 22.086 5 16 9.914 5 16 5zm-1 5v2h2v-2h-2zm0 4v8h2v-8h-2z" fill="currentColor"/></svg>',
+        onClick: (event, el, pswp) => {
+          toggleExif(pswp);
+        }
+      });
+    });
+
+    // Close EXIF panel when slide changes
+    lightbox.on('change', () => {
+      const exifContainer = document.querySelector('.pswp__exif-container');
+      if (exifContainer) {
+        exifContainer.remove();
+      }
+    });
+
+    async function toggleExif(pswp: any) {
+      const currSlide = pswp.currSlide;
+      if (!currSlide) return;
+
+      const img = currSlide.data.element as HTMLImageElement;
+      if (!img) return;
+
+      let exifContainer = document.querySelector('.pswp__exif-container');
+      if (exifContainer) {
+        exifContainer.remove();
+        return;
+      }
+
+      // Show loading state or just fetch
+      try {
+        const data = await exifr.parse(img.src, {
+          pick: ['Make', 'Model', 'ExposureTime', 'FNumber', 'ISO', 'FocalLength', 'DateTimeOriginal', 'LensModel', 'Software', 'ApertureValue', 'ShutterSpeedValue']
+        });
+
+        if (!data) {
+          // You might want a toast instead of an alert
+          showNoExifMessage(pswp);
+          return;
+        }
+
+        exifContainer = document.createElement('div');
+        exifContainer.className = 'pswp__exif-container';
+        
+        const formatValue = (val: any) => {
+            if (val === undefined || val === null) return null;
+            if (typeof val === 'number') return Math.round(val * 100) / 100;
+            return val;
+        };
+
+        const exposureTime = data.ExposureTime ? (data.ExposureTime < 1 ? `1/${Math.round(1/data.ExposureTime)}` : data.ExposureTime) : null;
+        const fNumber = formatValue(data.FNumber || data.ApertureValue);
+        const iso = data.ISO;
+        const focalLength = formatValue(data.FocalLength);
+
+        const rows = [];
+        if (data.Make || data.Model) rows.push(`<div class="exif-row"><strong>相机:</strong> ${data.Make || ''} ${data.Model || ''}</div>`);
+        if (data.LensModel) rows.push(`<div class="exif-row"><strong>镜头:</strong> ${data.LensModel}</div>`);
+        
+        const settings = [];
+        if (fNumber) settings.push(`ƒ/${fNumber}`);
+        if (exposureTime) settings.push(`${exposureTime}s`);
+        if (iso) settings.push(`ISO ${iso}`);
+        if (focalLength) settings.push(`${focalLength}mm`);
+        
+        if (settings.length > 0) {
+          rows.push(`<div class="exif-row"><strong>参数:</strong> ${settings.join(', ')}</div>`);
+        }
+        
+        if (data.DateTimeOriginal) {
+          rows.push(`<div class="exif-row"><strong>拍摄日期:</strong> ${new Date(data.DateTimeOriginal).toLocaleString()}</div>`);
+        }
+
+        if (rows.length === 0) {
+          showNoExifMessage(pswp);
+          return;
+        }
+
+        exifContainer.innerHTML = `
+          <div class="pswp__exif-content">
+            ${rows.join('')}
+          </div>
+        `;
+        
+        pswp.container.appendChild(exifContainer);
+      } catch (err) {
+        console.error('Error fetching EXIF:', err);
+        showNoExifMessage(pswp);
+      }
+    }
+
+    function showNoExifMessage(pswp: any) {
+        const msg = document.createElement('div');
+        msg.className = 'pswp__exif-container pswp__exif-no-data';
+        msg.innerText = '未找到 EXIF 信息';
+        pswp.container.appendChild(msg);
+        setTimeout(() => msg.remove(), 2000);
+    }
+
+    lightbox.init();
+  };
+
+  initPhotoSwipe();
+  document.addEventListener('astro:page-load', initPhotoSwipe);
+</script>
+
+<style is:global>
+  .pswp__exif-container {
+    position: absolute;
+    top: 20px;
+    right: 70px; /* Avoid toolbar buttons */
+    background: rgba(0, 0, 0, 0.75);
+    color: #eee;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 13px;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    max-width: 320px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    pointer-events: none;
+    line-height: 1.6;
+    animation: pswp-fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .pswp__exif-no-data {
+      top: 50%;
+      right: 50%;
+      transform: translate(50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 20px;
+      padding: 10px 20px;
+  }
+
+  .pswp__exif-content .exif-row {
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 6px;
+  }
+
+  .pswp__exif-content .exif-row:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .pswp__exif-content strong {
+    color: var(--color-primary-light, #85C1E9);
+    margin-right: 5px;
+    font-weight: 600;
+  }
+
+  @keyframes pswp-fade-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .prose img {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: zoom-in;
+  }
+
+  .prose img:hover {
+    box-shadow: 0 10px 25px rgba(93, 173, 226, 0.2);
+    transform: translateY(-2px);
+  }
+
+  /* PhotoSwipe UI adjustments */
+  .pswp__button--exif-button {
+      opacity: 0.75;
+  }
+  .pswp__button--exif-button:hover {
+      opacity: 1;
+  }
+</style>
