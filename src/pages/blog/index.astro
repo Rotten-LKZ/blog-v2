@@ -25,7 +25,7 @@ for (const meta of collectionMetas) {
 		const latestDate = new Date(Math.max(...relatedPosts.map(p => (p.data.updatedAt || p.data.createdAt).getTime())));
 		displayItems.push({
 			type: 'collection',
-			data: { ...meta.data, createdAt: latestDate },
+			data: { ...meta.data, createdAt: latestDate, toc: meta.data.toc || false },
 			slug: folderName,
 			date: latestDate,
 			url: `/collections/${folderName}/`

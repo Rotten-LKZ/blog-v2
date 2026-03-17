@@ -3,10 +3,10 @@ export const SITE_DESCRIPTION = '欢迎来到我的二次元风格博客~';
 
 export const SITE_OWNER = {
 	name: 'Rotcool',
-	avatar: '/favicon.svg',
-	bio: '热爱二次元与编程的开发者。',
+	avatar: 'https://img.rotcool.me/i/2022/12/27/63aaca2a50b7d.jpg',
+	bio: '励志摆烂，想要创造有趣的事物',
 	social: {
-		github: 'https://github.com/rotcool',
+		github: 'https://github.com/Rotten-LKZ',
 		twitter: '',
 		email: '',
 	},

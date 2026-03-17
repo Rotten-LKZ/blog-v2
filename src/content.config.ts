@@ -26,6 +26,7 @@ const collectionMeta = defineCollection({
 			cover: image().optional(),
 			category: z.string().optional(),
 			tags: z.array(z.string()).default([]),
+			toc: z.boolean().default(false),
 			isCollapsed: z.boolean().default(true),
 			showTocAbove: z.boolean().default(true),
 			structure: z.array(z.object({

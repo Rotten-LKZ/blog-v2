@@ -29,6 +29,7 @@ for (const meta of collectionMetas) {
 			data: {
 				...meta.data,
 				createdAt: latestDate, // Use latest date for display
+				toc: meta.data.toc || false,
 			},
 			slug: folderName,
 			date: latestDate,
