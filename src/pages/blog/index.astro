@@ -81,7 +81,7 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
 										{post.data.category}
 									</a>
 								)}
-								{post.type === 'collection' && <span class="collection-tag">合集</span>}
+								{post.type === 'collection' && <span class="collection-tag">系列合集</span>}
 							</div>
 							<a href={post.url} class="title-link">
 								<h3 class="title">{post.data.title}</h3>
@@ -228,26 +228,32 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
 	.category-link {
 		background: var(--color-accent);
 		color: white;
-		padding: 0 0.6rem;
-		height: 20px;
+		padding: 0 0.8rem;
+		height: 26px;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: 12px;
+		border-radius: 13px;
 		font-weight: 700;
-		font-size: 0.75em;
+		font-size: 0.8em;
+		line-height: 1;
+		/* 视觉微调：很多二次元风格字体基线偏高，通过微小内边距下压 */
+		padding-top: 1px;
 	}
 
 	.collection-tag {
 		background: var(--color-primary);
 		color: white;
-		padding: 0 0.5rem;
-		height: 18px;
+		padding: 0 0.6rem;
+		height: 22px;
 		display: inline-flex;
 		align-items: center;
+		justify-content: center;
 		border-radius: 4px;
-		font-size: 0.65em;
+		font-size: 0.75em;
 		font-weight: 800;
+		line-height: 1;
+		padding-top: 1px;
 	}
 
 	.title-link {
