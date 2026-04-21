@@ -3,7 +3,7 @@ export const SITE_DESCRIPTION = '神秘小地喵~';
 
 export const SITE_OWNER = {
 	name: 'RotCool',
-	avatar: 'https://img.rotcool.me/i/2022/12/27/63aaca2a50b7d.jpg',
+	avatar: 'https://rotcool.me/favicon.ico',
 	bio: '励志摆烂，想要创造有趣的事物',
 	social: {
 		github: 'https://github.com/Rotten-LKZ',
