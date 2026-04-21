@@ -32,6 +32,10 @@ jobs:
         run: |
           node -e "const fs = require('fs'); const path = 'src/components/Footer.astro'; const oldText = '<p>&copy; {today.getFullYear()} RotCool. All rights reserved.</p>'; const newText = '<p>&copy; {today.getFullYear()} RotCool. All rights reserved. <a href=\"https://beian.miit.gov.cn/\" target=\"_blank\">粤ICP备2026042288号-1</a></p>'; const content = fs.readFileSync(path, 'utf8'); if (!content.includes(oldText)) { throw new Error('Expected footer text not found'); } fs.writeFileSync(path, content.replace(oldText, newText), 'utf8');"
 
+      - name: Update avatar domain for ICP branch
+        run: |
+          node -e "const fs = require('fs'); const path = 'src/consts.ts'; const oldText = 'https://rotcool.me/favicon.ico'; const newText = 'https://rotcool.top/favicon.ico'; const content = fs.readFileSync(path, 'utf8'); if (!content.includes(oldText)) { throw new Error('Expected avatar URL not found'); } fs.writeFileSync(path, content.replace(oldText, newText), 'utf8');"
+
       - name: Build project
         run: pnpm run build
 
