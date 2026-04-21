@@ -1,0 +1,47 @@
+name: Build and Deploy ICP
+
+on:
+  push:
+    branches:
+      - icp
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Update footer for ICP branch
+        run: |
+          node -e "const fs = require('fs'); const path = 'src/components/Footer.astro'; const oldText = '<p>&copy; {today.getFullYear()} RotCool. All rights reserved.</p>'; const newText = '<p>&copy; {today.getFullYear()} RotCool. All rights reserved. <a href=\"https://beian.miit.gov.cn/\" target=\"_blank\">粤ICP备2026042288号-1</a></p>'; const content = fs.readFileSync(path, 'utf8'); if (!content.includes(oldText)) { throw new Error('Expected footer text not found'); } fs.writeFileSync(path, content.replace(oldText, newText), 'utf8');"
+
+      - name: Build project
+        run: pnpm run build
+
+      - name: Deploy via rsync over SSH
+        uses: burnett01/rsync-deployments@v8
+        with:
+          switches: -avzr --delete
+          path: dist/
+          remote_path: /var/www/rotcool-blog/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_port: ${{ secrets.SSH_PORT }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
