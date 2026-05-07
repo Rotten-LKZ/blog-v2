@@ -7,8 +7,7 @@ export const SITE_OWNER = {
 	bio: '励志摆烂，想要创造有趣的事物',
 	social: {
 		github: 'https://github.com/Rotten-LKZ',
-		twitter: '',
-		email: '',
+		email: 'self@rotcool.me',
 	},
 };
 
