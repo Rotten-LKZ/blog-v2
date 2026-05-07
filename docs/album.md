@@ -103,7 +103,7 @@ Markdown --[remark-album.mjs]--> 解析 album: 路径 --> 替换为真实 URL --
 
 - 层级导航（Breadcrumb）
 - 子相册卡片网格
-- 图片瀑布流布局（AlbumGallery 组件）
+- 图片网格布局（AlbumGallery 组件）
 - 递归统计子相册图片总数
 
 ### 2. Lightbox 交互 (ImageZoom)
@@ -160,7 +160,7 @@ title: "启程"
 2. ImageZoom 自动绑定 Lightbox
 3. 点击放大后显示相册标签，可跳转回对应相册页
 
-## 文件变更概览
+## 相关文件概览
 
 | 文件 | 变更说明 |
 |------|---------|
@@ -171,7 +171,7 @@ title: "启程"
 | `src/components/ImageZoom.astro` | 相册标签、EXIF 按钮样式优化 |
 | `astro.config.mjs` | 添加 PhotoSwipe 预构建配置 |
 | `src/pages/albums/[...id].astro` | 使用递归统计图片数 |
-| `src/pages/collections/[...slug].astro` | 类型安全优化、导航折叠 |
+| `src/pages/collections/[...slug].astro` | 合集文章页面支持相册图片引用与合集内导航 |
 
 ## 使用示例
 
@@ -179,6 +179,8 @@ title: "启程"
 
 ```typescript
 // src/data/images/new.trip.ts
+import type { AlbumImage } from '../albums';
+
 export default [
   { id: 'photo-1', title: '照片1', url: 'https://...' }
 ] as AlbumImage[];
@@ -186,11 +188,19 @@ export default [
 // src/data/albums.ts
 import newTrip from './images/new.trip';
 
-export const ALBUMS = [{
-  id: 'travel/new',
-  title: '新旅程',
-  images: newTrip,
-}];
+export const ALBUMS: Album[] = [
+  {
+    id: 'travel',
+    title: '旅游',
+    children: [
+      {
+        id: 'travel/new',
+        title: '新旅程',
+        images: newTrip,
+      },
+    ],
+  },
+];
 ```
 
 ### 2. 文章引用

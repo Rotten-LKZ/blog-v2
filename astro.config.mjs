@@ -8,7 +8,7 @@ import { remarkAlbumImages } from './src/lib/remark-album.mjs';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://example.com',
+	site: 'https://rotcool.me',
 	integrations: [
 		mdx({
 			remarkPlugins: [remarkAlbumImages],
