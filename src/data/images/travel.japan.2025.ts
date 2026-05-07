@@ -34,7 +34,7 @@ export default [
     {
         id: 'ktv-1',
         title: 'KTV - 中文歌片假名注音',
-        url: 'https://img.rotcool.top/v/2026/05/07/263d21af4313bade06c890eefee14790c0d3008242a17d1b8e8758176e90958c.jpg',
+        url: 'https://img.rotcool.top/v/2026/05/07/6b20eb4e89acbad523f36df47de8016390ca107adabee980fb847304c0ceef15.jpg',
     },
     {
         id: 'ktv-2',
