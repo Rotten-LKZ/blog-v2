@@ -6,9 +6,9 @@ import FormattedDate from '../components/FormattedDate.astro';
 import TagPill from '../components/TagPill.astro';
 import ImageZoom from '../components/ImageZoom.astro';
 
-interface Props extends CollectionEntry<'blog'>['data'] {
+type Props = CollectionEntry<'blog'>['data'] & {
 	headings?: { depth: number; slug: string; text: string }[];
-}
+};
 
 const { title, description, createdAt, updatedAt, cover, tags = [], category, toc, headings = [] } = Astro.props;
 

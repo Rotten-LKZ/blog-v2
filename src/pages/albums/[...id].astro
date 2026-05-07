@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getAllAlbums } from '../../lib/albums';
+import { getAllAlbums, getImageCountRecursive } from '../../lib/albums';
 import ImageZoom from '../../components/ImageZoom.astro';
 import AlbumGallery from '../../components/AlbumGallery.astro';
 
@@ -37,7 +37,7 @@ const parentId = album.id.includes('/') ? album.id.split('/').slice(0, -1).join(
 					<a href={`/albums/${sub.id}`} class="album-card-mini">
 						<div class="mini-info">
 							<h3>{sub.title}</h3>
-							<span>{sub.images?.length || 0} 张图片</span>
+							<span>{getImageCountRecursive(sub)} 张图片</span>
 						</div>
 					</a>
 				))}

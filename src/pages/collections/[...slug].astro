@@ -1,16 +1,38 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BlogPost from '../../layouts/BlogPost.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import TagPill from '../../components/TagPill.astro';
 import { Image } from 'astro:assets';
 
+type CollectionMetaEntry = CollectionEntry<'collectionMeta'>;
+type CollectionPostEntry = CollectionEntry<'collectedPosts'>;
+type CollectionPageProps =
+	| {
+			type: 'landing';
+			meta: CollectionMetaEntry;
+			allCollectionPosts: CollectionPostEntry[];
+			post?: undefined;
+		}
+	| {
+			type: 'post';
+			meta: CollectionMetaEntry;
+			post: CollectionPostEntry;
+			allCollectionPosts: CollectionPostEntry[];
+		};
+type CollectionPath = { params: { slug: string }; props: CollectionPageProps };
+type NavPost = { slug: string; title: string; url: string };
+
+type Props = CollectionPageProps;
+
 export async function getStaticPaths() {
 	const metas = await getCollection('collectionMeta');
 	const allCollectedPosts = await getCollection('collectedPosts');
 
-	const paths = [];
+	const paths: CollectionPath[] = [];
 
 	for (const meta of metas) {
 		const collectionId = meta.id; 
@@ -42,8 +64,8 @@ export async function getStaticPaths() {
 const { type, meta, post, allCollectionPosts } = Astro.props;
 
 // Render content in frontmatter
-let Content;
-let headings = [];
+let Content: AstroComponentFactory | undefined;
+let headings: MarkdownHeading[] = [];
 if (type === 'post' && post) {
 	const rendered = await render(post);
 	Content = rendered.Content;
@@ -51,14 +73,14 @@ if (type === 'post' && post) {
 }
 
 // Navigation Logic for Posts
-let prevPost = null;
-let nextPost = null;
-const folderName = meta?.id.split('/')[0];
+let prevPost: NavPost | null = null;
+let nextPost: NavPost | null = null;
+const folderName = meta.id.split('/')[0];
 
-if (type === 'post' && meta) {
-	const flatPosts = meta.data.structure.flatMap(chapter => 
+if (type === 'post' && post) {
+	const flatPosts = meta.data.structure.flatMap(chapter =>
 		chapter.posts.map(p => {
-			const postEntry = (allCollectionPosts || []).find(cp => cp.id.endsWith(`/${p.slug}`));
+			const postEntry = allCollectionPosts.find(cp => cp.id.endsWith(`/${p.slug}`));
 			return {
 				slug: p.slug,
 				title: p.title || postEntry?.data.title || p.slug,
@@ -74,8 +96,7 @@ if (type === 'post' && meta) {
 	if (currentIndex < flatPosts.length - 1) nextPost = flatPosts[currentIndex + 1];
 }
 
-const getDisplayTitle = (postSlug: string, postData: any) => {
-	if (!meta) return postData.title;
+const getDisplayTitle = (postSlug: string, postData: CollectionPostEntry['data']) => {
 	for (const chapter of meta.data.structure) {
 		const found = chapter.posts.find(p => p.slug === postSlug);
 		if (found?.title) return found.title;
@@ -128,12 +149,12 @@ const getDisplayTitle = (postSlug: string, postData: any) => {
 			</div>
 		</div>
 	</BaseLayout>
-) : (
+) : post ? (
 	<BlogPost {...post.data} title={getDisplayTitle(post.id.split('/').pop()!, post.data)} headings={headings}>
 		<div class="post-content-container">
 			{meta.data.showTocAbove && (
 				<div class="collection-quick-nav">
-					<details open>
+					<details>
 						<summary>合集：{meta.data.title}</summary>
 						<div class="nav-inner">
 							{meta.data.structure.map(chapter => (
@@ -178,7 +199,7 @@ const getDisplayTitle = (postSlug: string, postData: any) => {
 			</div>
 		</nav>
 	</BlogPost>
-)}
+) : null}
 
 <style>
 	.collection-landing { max-width: 900px; margin: 0 auto; }
@@ -256,6 +277,9 @@ const getDisplayTitle = (postSlug: string, postData: any) => {
 		border: 1px solid var(--color-primary-light);
 		max-width: 100%;
 		overflow: hidden;
+	}
+	.collection-quick-nav summary {
+		cursor: pointer;
 	}
 	.nav-inner {
 		margin-top: 1.25rem;

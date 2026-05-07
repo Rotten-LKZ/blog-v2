@@ -19,4 +19,9 @@ export default defineConfig({
 	markdown: {
 		remarkPlugins: [remarkAlbumImages],
 	},
+	vite: {
+		optimizeDeps: {
+			include: ['photoswipe', 'photoswipe/lightbox'],
+		},
+	},
 });

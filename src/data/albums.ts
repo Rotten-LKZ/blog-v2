@@ -1,3 +1,5 @@
+import travelJapan2025 from './images/travel.japan.2025';
+
 export interface AlbumImage {
 	id: string; // 唯一标识，用于文章引用，如 "japan/tokyo-tower" 或 "tokyo-tower" (在 album 内)
 	title?: string;
@@ -23,20 +25,13 @@ export const ALBUMS: Album[] = [
 			{
 				id: 'travel/japan',
 				title: '日本',
-				images: [
+				children: [
 					{
-						id: 'tokyo-tower',
-						title: '东京铁塔',
-						url: 'https://images.unsplash.com/photo-1540959733332-e94e270b4052',
+						id: 'travel/japan/2025',
+						title: '2025 暑假',
+						images: travelJapan2025,
 					},
 				],
-			},
-		],
-		images: [
-			{
-				id: 'start',
-				title: '出发',
-				url: '/src/assets/blog-placeholder-1.jpg',
 			},
 		],
 	},

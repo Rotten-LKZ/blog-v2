@@ -146,6 +146,11 @@ p {
 /* Prose (article content) */
 .prose p {
 	margin-bottom: 1.5em;
+	text-indent: 2em;
+}
+
+.prose p:has(> img:first-child) {
+	text-indent: 0;
 }
 
 .prose a {

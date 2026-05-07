@@ -1,0 +1,21 @@
+{
+	"title": "2025 暑假赴日旅行记",
+	"description": "记录毕业暑假赴日旅行过程！请注意本系列图片较多，请注意流量消耗。",
+	"category": "Life",
+	"tags": ["Japan", "Travel"],
+	"isCollapsed": true,
+	"showTocAbove": true,
+	"structure": [
+		{
+			"chapterName": "第一章：东京之旅",
+			"posts": [
+				{ "slug": "chapter1-1-start", "title": "1.1 启程" }
+			]
+		},
+		{
+			"chapterName": "第二章：关西之旅",
+			"posts": [
+			]
+		}
+	]
+}

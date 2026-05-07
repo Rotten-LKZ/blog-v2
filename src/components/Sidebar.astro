@@ -20,7 +20,7 @@ import ThemeToggle from './ThemeToggle.astro';
 		<!-- Navigation -->
 		<nav class="sidebar-nav">
 			{NAV_LINKS.map((link) => (
-				<a href={link.href} class:list={['nav-link', { active: Astro.url.pathname === link.href || (link.href !== '/' && Astro.url.pathname.startsWith(link.href)) }]}>
+						<a href={link.href} class:list={['nav-link', { active: Astro.url.pathname === link.href || (link.href !== '/' && Astro.url.pathname.startsWith(link.href)) || (link.href === '/blog' && Astro.url.pathname.startsWith('/collections')) }]}>
 					{link.label}
 				</a>
 			))}
