@@ -1,0 +1,90 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllAlbums } from '../../lib/albums';
+import ImageZoom from '../../components/ImageZoom.astro';
+import AlbumGallery from '../../components/AlbumGallery.astro';
+
+export async function getStaticPaths() {
+	const albums = getAllAlbums();
+	return albums.map((album) => ({
+		params: { id: album.id },
+		props: { album },
+	}));
+}
+
+const { album } = Astro.props;
+
+const parentId = album.id.includes('/') ? album.id.split('/').slice(0, -1).join('/') : null;
+---
+
+<BaseLayout title={album.title} description={album.description || ''}>
+	<nav class="breadcrumb">
+		<a href="/albums">相册首页</a>
+		{parentId && <span> / <a href={`/albums/${parentId}`}>上级相册</a></span>}
+		<span> / {album.title}</span>
+	</nav>
+
+	<header class="album-header">
+		<h1>{album.title}</h1>
+		{album.description && <p>{album.description}</p>}
+	</header>
+
+	{album.children && album.children.length > 0 && (
+		<section class="sub-albums">
+			<h2>子相册</h2>
+			<div class="albums-grid">
+				{album.children.map(sub => (
+					<a href={`/albums/${sub.id}`} class="album-card-mini">
+						<div class="mini-info">
+							<h3>{sub.title}</h3>
+							<span>{sub.images?.length || 0} 张图片</span>
+						</div>
+					</a>
+				))}
+			</div>
+		</section>
+	)}
+
+	<section class="photos-section">
+		<h2>照片内容</h2>
+		<AlbumGallery album={album} recursive={true} />
+	</section>
+	
+	<ImageZoom />
+</BaseLayout>
+
+<style>
+	.breadcrumb {
+		margin-bottom: 1rem;
+		font-size: 0.9rem;
+		color: var(--color-text-muted);
+	}
+	.breadcrumb a { color: inherit; text-decoration: none; }
+	.breadcrumb a:hover { color: var(--color-primary); }
+
+	.album-header { margin-bottom: 3rem; }
+	.album-header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+	.sub-albums { margin-bottom: 3rem; }
+	.sub-albums h2 { margin-bottom: 1.5rem; font-size: 1.5rem; }
+
+	.albums-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 1rem;
+	}
+	.album-card-mini {
+		padding: 1rem;
+		background: var(--color-bg-alt);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		text-decoration: none;
+		color: inherit;
+		transition: border-color 0.2s;
+	}
+	.album-card-mini:hover { border-color: var(--color-primary); }
+	.mini-info h3 { margin: 0; font-size: 1.1rem; }
+	.mini-info span { font-size: 0.8rem; color: var(--color-text-muted); }
+
+	.photos-section h2 { margin-bottom: 1.5rem; font-size: 1.5rem; }
+</style>

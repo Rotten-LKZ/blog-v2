@@ -1,0 +1,111 @@
+---
+import { getImagesRecursive, getFullAlbumTitle } from '../lib/albums';
+import { getCollection } from 'astro:content';
+import type { Album } from '../data/albums';
+
+interface Props {
+	album: Album;
+	recursive?: boolean;
+}
+
+const { album, recursive = true } = Astro.props;
+
+// 获取图片（支持递归或仅当前）
+const imagesWithAlbums = recursive ? getImagesRecursive(album) : (album.images?.map(img => ({ image: img, album })) || []);
+
+// 反向查找文章
+const blogPosts = await getCollection('blog');
+const collectionPosts = await getCollection('collectedPosts');
+const allPosts = [...blogPosts, ...collectionPosts];
+
+const items = imagesWithAlbums.map(({ image, album: itemAlbum }) => {
+	const fullPath = `@/${itemAlbum.id}/${image.id}`;
+	const linkedPosts = allPosts.filter(p => p.body?.includes(fullPath));
+	return { image, album: itemAlbum, linkedPosts };
+});
+---
+
+<div class="album-gallery" data-pswp-gallery>
+	{items.map(({ image, album: itemAlbum, linkedPosts }) => (
+		<div class="photo-item">
+			<div class="photo-wrapper">
+				<img 
+					src={image.url} 
+					alt={image.title || image.id} 
+					data-album-title={getFullAlbumTitle(itemAlbum.id)}
+					data-album-id={itemAlbum.id}
+					loading="lazy"
+				/>
+			</div>
+			<div class="photo-meta">
+				<h4>{image.title || image.id}</h4>
+				{itemAlbum.id !== album.id && <span class="sub-tag">来自: {itemAlbum.title}</span>}
+				{linkedPosts.length > 0 && (
+					<div class="mentions">
+						<span class="label">引用文章:</span>
+						<ul>
+							{linkedPosts.map(post => (
+								<li><a href={`/blog/${post.id}`}>{post.data.title}</a></li>
+							))}
+						</ul>
+					</div>
+				)}
+			</div>
+		</div>
+	))}
+</div>
+
+<style>
+	.album-gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 2rem;
+		margin-top: 1.5rem;
+	}
+	.photo-item {
+		background: var(--color-bg-card);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+	}
+	.photo-wrapper {
+		aspect-ratio: 16 / 10;
+		background: var(--color-bg-inset);
+		overflow: hidden;
+	}
+	.photo-wrapper img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.3s;
+		cursor: zoom-in;
+	}
+	.photo-item:hover img { transform: scale(1.05); }
+
+	.photo-meta { padding: 1.25rem; flex: 1; }
+	.photo-meta h4 { margin: 0 0 0.5rem 0; font-size: 1.1rem; }
+	
+	.sub-tag {
+		display: inline-block;
+		font-size: 0.75rem;
+		color: var(--color-text-muted);
+		background: var(--color-bg-alt);
+		padding: 0.1rem 0.4rem;
+		border-radius: var(--radius-sm);
+		margin-bottom: 0.75rem;
+	}
+
+	.mentions { 
+		font-size: 0.85rem; 
+		border-top: 1px dashed var(--color-border); 
+		padding-top: 0.75rem; 
+		margin-top: 0.5rem;
+	}
+	.mentions .label { color: var(--color-text-muted); font-weight: 500; }
+	.mentions ul { list-style: none; padding: 0; margin: 0.5rem 0 0 0; }
+	.mentions li { margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.mentions a { color: var(--color-primary); text-decoration: none; }
+	.mentions a:hover { text-decoration: underline; }
+</style>

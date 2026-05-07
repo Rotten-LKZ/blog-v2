@@ -15,6 +15,7 @@ export const SITE_OWNER = {
 export const NAV_LINKS = [
 	{ label: '首页', href: '/' },
 	{ label: '文章', href: '/blog' },
+	{ label: '相册', href: '/albums' },
 	{ label: '关于', href: '/about' },
 	{ label: '应用', href: '/app' },
 ];

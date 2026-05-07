@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { ALBUMS } from '../../data/albums';
+
+const title = '我的相册';
+const description = '记录生活的点点滴滴';
+---
+
+<BaseLayout title={title} description={description}>
+	<section>
+		<h1 class="page-title">相册</h1>
+		<p class="page-description">{description}</p>
+		<div class="albums-grid">
+			{ALBUMS.map(album => (
+				<a href={`/albums/${album.id}`} class="album-card">
+					<div class="album-cover">
+						{album.cover ? <img src={album.cover} alt={album.title} /> : <div class="placeholder-cover">📁</div>}
+					</div>
+					<div class="album-info">
+						<h3>{album.title}</h3>
+						{album.description && <p>{album.description}</p>}
+						<span class="count">
+							{(album.images?.length || 0) + (album.children?.length || 0)} 个项目
+						</span>
+					</div>
+				</a>
+			))}
+		</div>
+	</section>
+</BaseLayout>
+
+<style>
+	.page-title {
+		font-size: 2.5rem;
+		margin-bottom: 0.5rem;
+		color: var(--color-text-heading);
+	}
+	.page-description {
+		margin-bottom: 2rem;
+		color: var(--color-text-muted);
+	}
+	.albums-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+		gap: 2rem;
+	}
+	.album-card {
+		text-decoration: none;
+		color: inherit;
+		background: var(--color-bg-alt);
+		border-radius: var(--radius-md);
+		overflow: hidden;
+		transition: transform 0.2s, box-shadow 0.2s;
+		border: 1px solid var(--color-border);
+	}
+	.album-card:hover {
+		transform: translateY(-4px);
+		box-shadow: var(--shadow-md);
+	}
+	.album-cover {
+		height: 180px;
+		background: var(--color-bg-inset);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+	}
+	.album-cover img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.placeholder-cover {
+		font-size: 3rem;
+	}
+	.album-info {
+		padding: 1.5rem;
+	}
+	.album-info h3 {
+		margin: 0 0 0.5rem 0;
+		font-size: 1.25rem;
+	}
+	.album-info p {
+		font-size: 0.9rem;
+		color: var(--color-text-muted);
+		margin-bottom: 1rem;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.count {
+		font-size: 0.8rem;
+		padding: 0.2rem 0.6rem;
+		background: var(--color-bg-card);
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--color-border);
+	}
+</style>

@@ -55,4 +55,21 @@ const collectedPosts = defineCollection({
 		}),
 });
 
-export const collections = { blog, collectionMeta, collectedPosts };
+const albums = defineCollection({
+	loader: glob({ base: './src/content/albums', pattern: '**/meta.json' }),
+	schema: ({ image }) =>
+		z.object({
+			title: z.string(),
+			description: z.string().optional(),
+			cover: image().optional(),
+			// 支持显式列出图片以添加标题/描述，如果不想手动维护也可以留空由程序扫描
+			images: z.array(z.object({
+				name: z.string(), // 对应文件名，如 "mountains"
+				title: z.string().optional(),
+				description: z.string().optional(),
+				file: image(), // 实际路径
+			})).default([]),
+		}),
+});
+
+export const collections = { blog, collectionMeta, collectedPosts, albums };

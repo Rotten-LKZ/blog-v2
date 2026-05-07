@@ -7,164 +7,188 @@ import 'photoswipe/dist/photoswipe.css';
   import exifr from 'exifr';
 
   const initPhotoSwipe = () => {
-    const images = document.querySelectorAll('.prose img');
-    if (images.length === 0) return;
+    const galleries = document.querySelectorAll<HTMLElement>('.prose, [data-pswp-gallery]');
+    if (galleries.length === 0) return;
 
-    images.forEach((img) => {
-      if (!(img instanceof HTMLImageElement)) return;
-      if (img.closest('a') && !img.closest('.pswp-gallery')) return;
-      img.style.cursor = 'zoom-in';
-    });
+    galleries.forEach((gallery) => {
+      const images = gallery.querySelectorAll('img');
+      images.forEach((img) => {
+        if (!(img instanceof HTMLImageElement)) return;
+        img.style.cursor = 'zoom-in';
+      });
 
-    const lightbox = new PhotoSwipeLightbox({
-      gallery: '.prose',
-      children: 'img',
-      pswpModule: () => import('photoswipe'),
-      secondaryZoomLevel: 2,
-      maxZoomLevel: 4,
-      showHideAnimationType: 'zoom',
-      imageClickAction: 'zoom',
-      bgOpacity: 0.9,
-    });
+      const lightbox = new PhotoSwipeLightbox({
+        gallery: gallery,
+        children: 'img',
+        pswpModule: () => import('photoswipe'),
+        secondaryZoomLevel: 2,
+        maxZoomLevel: 4,
+        showHideAnimationType: 'zoom',
+        imageClickAction: 'zoom',
+        bgOpacity: 0.9,
+      });
 
-    // Handle getting image dimensions and captions
-    lightbox.addFilter('itemData', (itemData) => {
-      const img = itemData.element as HTMLImageElement;
-      if (img) {
-        itemData.src = img.src;
-        itemData.w = img.naturalWidth || Number(img.getAttribute('width')) || 0;
-        itemData.h = img.naturalHeight || Number(img.getAttribute('height')) || 0;
-        itemData.msrc = img.src;
-        // Use alt text as caption
-        itemData.caption = img.alt || '';
-      }
-      return itemData;
-    });
+      lightbox.addFilter('itemData', (itemData) => {
+        const img = itemData.element as HTMLImageElement;
+        if (img) {
+          itemData.src = img.src;
+          itemData.w = img.naturalWidth || Number(img.getAttribute('width')) || 0;
+          itemData.h = img.naturalHeight || Number(img.getAttribute('height')) || 0;
+          itemData.msrc = img.src;
+          itemData.caption = img.alt || '';
+          itemData.albumTitle = img.getAttribute('data-album-title');
+          itemData.albumId = img.getAttribute('data-album-id');
+        }
+        return itemData;
+      });
 
-    // Add Caption to the bottom
-    lightbox.on('uiRegister', () => {
-      lightbox.pswp?.ui?.registerElement({
-        name: 'custom-caption',
-        order: 9,
-        isButton: false,
-        appendTo: 'root',
-        html: '',
-        onInit: (el, pswp) => {
-          pswp.on('change', () => {
-            const currSlide = pswp.currSlide;
-            if (currSlide && currSlide.data.caption) {
-              el.innerHTML = `<div class="pswp__custom-caption-content">${currSlide.data.caption}</div>`;
-              el.style.display = 'block';
-            } else {
-              el.style.display = 'none';
-            }
-          });
+      lightbox.on('uiRegister', () => {
+        // Caption at bottom
+        lightbox.pswp?.ui?.registerElement({
+          name: 'custom-caption',
+          order: 9,
+          isButton: false,
+          appendTo: 'root',
+          html: '',
+          onInit: (el: HTMLElement, pswp: any) => {
+            pswp.on('change', () => {
+              const currSlide = pswp.currSlide;
+              if (currSlide && currSlide.data.caption) {
+                el.innerHTML = `<div class="pswp__custom-caption-content">${currSlide.data.caption}</div>`;
+                el.style.display = 'block';
+              } else {
+                el.style.display = 'none';
+              }
+            });
+          }
+        });
+
+        // Album Tag top right (left of EXIF)
+        lightbox.pswp?.ui?.registerElement({
+          name: 'album-tag',
+          order: 7, // To the left of EXIF (8)
+          isButton: false,
+          appendTo: 'root',
+          html: '',
+          onInit: (el: HTMLElement, pswp: any) => {
+            pswp.on('change', () => {
+              const currSlide = pswp.currSlide;
+              if (currSlide && currSlide.data.albumTitle) {
+                el.innerHTML = `<a href="/albums/${currSlide.data.albumId}" class="pswp__album-tag-content">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                  ${currSlide.data.albumTitle}
+                </a>`;
+                el.style.display = 'block';
+              } else {
+                el.style.display = 'none';
+              }
+            });
+          }
+        });
+
+        // EXIF Button
+        lightbox.pswp?.ui?.registerElement({
+          name: 'exif-button',
+          ariaLabel: 'Show EXIF information',
+          order: 8,
+          isButton: true,
+          html: '<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 32 32" width="32" height="32"><path d="M16 3C8.832 3 3 8.832 3 16s5.832 13 13 13 13-5.832 13-13S23.168 3 16 3zm0 2c6.086 0 11 4.914 11 11s-4.914 11-11 11S5 22.086 5 16 9.914 5 16 5zm-1 5v2h2v-2h-2zm0 4v8h2v-8h-2z" fill="currentColor"/></svg>',
+          onClick: (event: any, el: any, pswp: any) => {
+            toggleExif(pswp);
+          }
+        });
+      });
+
+      lightbox.on('change', () => {
+        const exifContainer = document.querySelector('.pswp__exif-container');
+        if (exifContainer) {
+          exifContainer.remove();
         }
       });
 
-      // Add EXIF button
-      lightbox.pswp?.ui?.registerElement({
-        name: 'exif-button',
-        ariaLabel: 'Show EXIF information',
-        order: 8,
-        isButton: true,
-        html: '<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 32 32" width="32" height="32"><path d="M16 3C8.832 3 3 8.832 3 16s5.832 13 13 13 13-5.832 13-13S23.168 3 16 3zm0 2c6.086 0 11 4.914 11 11s-4.914 11-11 11S5 22.086 5 16 9.914 5 16 5zm-1 5v2h2v-2h-2zm0 4v8h2v-8h-2z" fill="currentColor"/></svg>',
-        onClick: (event, el, pswp) => {
-          toggleExif(pswp);
-        }
+      lightbox.init();
+    });
+  };
+
+  async function toggleExif(pswp: any) {
+    const currSlide = pswp.currSlide;
+    if (!currSlide) return;
+
+    const img = currSlide.data.element as HTMLImageElement;
+    if (!img) return;
+
+    let exifContainer = document.querySelector('.pswp__exif-container');
+    if (exifContainer) {
+      exifContainer.remove();
+      return;
+    }
+
+    try {
+      const data = await exifr.parse(img.src, {
+        pick: ['Make', 'Model', 'ExposureTime', 'FNumber', 'ISO', 'FocalLength', 'DateTimeOriginal', 'LensModel', 'Software', 'ApertureValue', 'ShutterSpeedValue']
       });
-    });
 
-    // Close EXIF panel when slide changes
-    lightbox.on('change', () => {
-      const exifContainer = document.querySelector('.pswp__exif-container');
-      if (exifContainer) {
-        exifContainer.remove();
-      }
-    });
-
-    async function toggleExif(pswp: any) {
-      const currSlide = pswp.currSlide;
-      if (!currSlide) return;
-
-      const img = currSlide.data.element as HTMLImageElement;
-      if (!img) return;
-
-      let exifContainer = document.querySelector('.pswp__exif-container');
-      if (exifContainer) {
-        exifContainer.remove();
+      if (!data) {
+        showNoExifMessage(pswp);
         return;
       }
 
-      try {
-        const data = await exifr.parse(img.src, {
-          pick: ['Make', 'Model', 'ExposureTime', 'FNumber', 'ISO', 'FocalLength', 'DateTimeOriginal', 'LensModel', 'Software', 'ApertureValue', 'ShutterSpeedValue']
-        });
+      exifContainer = document.createElement('div');
+      exifContainer.className = 'pswp__exif-container';
+      
+      const formatValue = (val: any) => {
+          if (val === undefined || val === null) return null;
+          if (typeof val === 'number') return Math.round(val * 100) / 100;
+          return val;
+      };
 
-        if (!data) {
-          showNoExifMessage(pswp);
-          return;
-        }
+      const exposureTime = data.ExposureTime ? (data.ExposureTime < 1 ? `1/${Math.round(1/data.ExposureTime)}` : data.ExposureTime) : null;
+      const fNumber = formatValue(data.FNumber || data.ApertureValue);
+      const iso = data.ISO;
+      const focalLength = formatValue(data.FocalLength);
 
-        exifContainer = document.createElement('div');
-        exifContainer.className = 'pswp__exif-container';
-        
-        const formatValue = (val: any) => {
-            if (val === undefined || val === null) return null;
-            if (typeof val === 'number') return Math.round(val * 100) / 100;
-            return val;
-        };
-
-        const exposureTime = data.ExposureTime ? (data.ExposureTime < 1 ? `1/${Math.round(1/data.ExposureTime)}` : data.ExposureTime) : null;
-        const fNumber = formatValue(data.FNumber || data.ApertureValue);
-        const iso = data.ISO;
-        const focalLength = formatValue(data.FocalLength);
-
-        const rows = [];
-        if (data.Make || data.Model) rows.push(`<div class="exif-row"><strong>相机:</strong> ${data.Make || ''} ${data.Model || ''}</div>`);
-        if (data.LensModel) rows.push(`<div class="exif-row"><strong>镜头:</strong> ${data.LensModel}</div>`);
-        
-        const settings = [];
-        if (fNumber) settings.push(`ƒ/${fNumber}`);
-        if (exposureTime) settings.push(`${exposureTime}s`);
-        if (iso) settings.push(`ISO ${iso}`);
-        if (focalLength) settings.push(`${focalLength}mm`);
-        
-        if (settings.length > 0) {
-          rows.push(`<div class="exif-row"><strong>参数:</strong> ${settings.join(', ')}</div>`);
-        }
-        
-        if (data.DateTimeOriginal) {
-          rows.push(`<div class="exif-row"><strong>拍摄日期:</strong> ${new Date(data.DateTimeOriginal).toLocaleString()}</div>`);
-        }
-
-        if (rows.length === 0) {
-          showNoExifMessage(pswp);
-          return;
-        }
-
-        exifContainer.innerHTML = `
-          <div class="pswp__exif-content">
-            ${rows.join('')}
-          </div>
-        `;
-        
-        pswp.container.appendChild(exifContainer);
-      } catch (err) {
-        showNoExifMessage(pswp);
+      const rows = [];
+      if (data.Make || data.Model) rows.push(`<div class="exif-row"><strong>相机:</strong> ${data.Make || ''} ${data.Model || ''}</div>`);
+      if (data.LensModel) rows.push(`<div class="exif-row"><strong>镜头:</strong> ${data.LensModel}</div>`);
+      
+      const settings = [];
+      if (fNumber) settings.push(`ƒ/${fNumber}`);
+      if (exposureTime) settings.push(`${exposureTime}s`);
+      if (iso) settings.push(`ISO ${iso}`);
+      if (focalLength) settings.push(`${focalLength}mm`);
+      
+      if (settings.length > 0) {
+        rows.push(`<div class="exif-row"><strong>参数:</strong> ${settings.join(', ')}</div>`);
       }
-    }
+      
+      if (data.DateTimeOriginal) {
+        rows.push(`<div class="exif-row"><strong>拍摄日期:</strong> ${new Date(data.DateTimeOriginal).toLocaleString()}</div>`);
+      }
 
-    function showNoExifMessage(pswp: any) {
-        const msg = document.createElement('div');
-        msg.className = 'pswp__exif-container pswp__exif-no-data';
-        msg.innerText = '未找到 EXIF 信息';
-        pswp.container.appendChild(msg);
-        setTimeout(() => msg.remove(), 2000);
-    }
+      if (rows.length === 0) {
+        showNoExifMessage(pswp);
+        return;
+      }
 
-    lightbox.init();
-  };
+      exifContainer.innerHTML = `
+        <div class="pswp__exif-content">
+          ${rows.join('')}
+        </div>
+      `;
+      
+      pswp.container.appendChild(exifContainer);
+    } catch (err) {
+      showNoExifMessage(pswp);
+    }
+  }
+
+  function showNoExifMessage(pswp: any) {
+      const msg = document.createElement('div');
+      msg.className = 'pswp__exif-container pswp__exif-no-data';
+      msg.innerText = '未找到 EXIF 信息';
+      pswp.container.appendChild(msg);
+      setTimeout(() => msg.remove(), 2000);
+  }
 
   initPhotoSwipe();
   document.addEventListener('astro:page-load', initPhotoSwipe);
@@ -180,6 +204,9 @@ import 'photoswipe/dist/photoswipe.css';
     background: rgba(0, 0, 0, 0.6);
     color: white;
     padding: 8px 16px;
+    padding-top: 9px;
+    padding-bottom: 7px;
+    line-height: 1;
     border-radius: 20px;
     font-size: 14px;
     backdrop-filter: blur(4px);
@@ -189,6 +216,29 @@ import 'photoswipe/dist/photoswipe.css';
     border: 1px solid rgba(255, 255, 255, 0.1);
     pointer-events: none;
     animation: pswp-fade-in 0.3s ease-out;
+  }
+
+  .pswp__album-tag-content {
+    position: absolute;
+    top: 15px; /* 往上移，与按钮中心对齐 */
+    right: 160px; /* 移到 EXIF 等按钮组的左边 */
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 5px 12px; /* 稍微缩小高度，更像药丸标签 */
+    border-radius: 12px;
+    font-size: 13px;
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center; gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-decoration: none;
+    pointer-events: auto;
+    transition: all 0.2s;
+  }
+  .pswp__album-tag-content:hover {
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--color-primary-light, #85C1E9);
   }
 
   /* Markdown Captions in Prose */
