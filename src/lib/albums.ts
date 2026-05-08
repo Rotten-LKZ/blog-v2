@@ -167,6 +167,9 @@ function getAlbumPathFromImageTag(tag: string): { path: string; alt?: string } |
  * 服务端兜底解析文章 HTML 中残留的相册图片引用。
  * Astro dev 的 content cache/HMR 有时不会因 src/data/albums.ts 更新而重跑 remark 插件，
  * 这里在布局渲染时再次替换，确保最终 HTML 不会留下 album: 或 __astro_image_。
+ *
+ * 如果遇到 album: 或 __astro_image_ 引用但无法解析，会 throw error，
+ * 避免 silent failure（比如 id 拼错、数据缺失等）。
  */
 export function resolveAlbumImageHtml(html: string): string {
 	return html.replace(/<img\b[^>]*>/gi, (tag) => {
@@ -174,7 +177,9 @@ export function resolveAlbumImageHtml(html: string): string {
 		if (!albumRef) return tag;
 
 		const result = findImageByPath(albumRef.path);
-		if (!result) return tag;
+		if (!result) {
+			throw new Error(`[album] Unresolved album image in HTML: ${albumRef.path}`);
+		}
 
 		let nextTag = removeHtmlAttribute(tag, '__astro_image_');
 		nextTag = setHtmlAttribute(nextTag, 'src', result.image.url);

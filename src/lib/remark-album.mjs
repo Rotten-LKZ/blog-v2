@@ -124,8 +124,49 @@ function loadExportValue(filePath, exportName) {
 	return value;
 }
 
+/**
+ * 校验相册数据完整性：
+ * - album.id 在整棵树中唯一
+ * - image.id 在所属 album 内唯一（跨 album 可重复）
+ */
+function validateAlbums(albums) {
+	const albumIdSet = new Set();
+	const errors = [];
+
+	function walk(nodes) {
+		for (const album of nodes) {
+			if (albumIdSet.has(album.id)) {
+				errors.push(`Duplicate album id: "${album.id}"`);
+			}
+			albumIdSet.add(album.id);
+
+			if (album.images) {
+				const imageIdSet = new Set();
+				for (const img of album.images) {
+					if (imageIdSet.has(img.id)) {
+						errors.push(`Duplicate image id "${img.id}" in album "${album.id}"`);
+					}
+					imageIdSet.add(img.id);
+				}
+			}
+
+			if (album.children) {
+				walk(album.children);
+			}
+		}
+	}
+
+	walk(albums);
+
+	if (errors.length > 0) {
+		throw new Error(`[album] Validation failed:\n  ${errors.join('\n  ')}`);
+	}
+}
+
 function loadAlbums() {
-	return loadExportValue(albumsFilePath, 'ALBUMS');
+	const albums = loadExportValue(albumsFilePath, 'ALBUMS');
+	validateAlbums(albums);
+	return albums;
 }
 
 function getAllAlbums(albums) {
@@ -184,8 +225,9 @@ function getFullAlbumTitle(albumId, albums) {
  * 兼容旧写法 ![](@/album/image)，但推荐使用 album:，避免和 Astro 的 @/ 别名冲突。
  */
 export function remarkAlbumImages() {
-	return (tree) => {
+	return (tree, file) => {
 		const albums = loadAlbums();
+		const filePath = file?.history?.[0] || file?.path || '<unknown>';
 
 		visit(tree, 'image', (node) => {
 			if (typeof node.url !== 'string') return;
@@ -193,7 +235,7 @@ export function remarkAlbumImages() {
 
 			const result = findImageByPath(node.url, albums);
 			if (!result) {
-				throw new Error(`Album image not found: ${node.url}`);
+				throw new Error(`[album] Image not found: ${node.url} (in ${filePath})`);
 			}
 
 			node.url = result.image.url;

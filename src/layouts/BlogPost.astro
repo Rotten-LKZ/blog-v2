@@ -5,12 +5,17 @@ import BaseLayout from './BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import TagPill from '../components/TagPill.astro';
 import ImageZoom from '../components/ImageZoom.astro';
+import { resolveAlbumImageHtml } from '../lib/albums';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	headings?: { depth: number; slug: string; text: string }[];
 };
 
 const { title, description, createdAt, updatedAt, cover, tags = [], category, toc, headings = [] } = Astro.props;
+
+// 渲染 slot 并对 album: 引用做兜底替换（解决 HMR / content cache 不触发 remark 插件的问题）
+const rawHtml = await Astro.slots.render('default');
+const contentHtml = resolveAlbumImageHtml(rawHtml);
 
 // 过滤掉深度太大的标题（只显示 h2 和 h3）
 const filteredHeadings = headings.filter((h) => h.depth > 1 && h.depth < 4);
@@ -44,9 +49,7 @@ const filteredHeadings = headings.filter((h) => h.depth > 1 && h.depth < 4);
 				</div>
 				<hr />
 			</div>
-			<div class="prose">
-				<slot />
-			</div>
+			<div class="prose" set:html={contentHtml} />
 		</article>
 
 		{toc && filteredHeadings.length > 0 && (

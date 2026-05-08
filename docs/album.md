@@ -141,7 +141,33 @@ Markdown 中的 `album:` 图片在编译时被 remark 插件替换为真实 URL�
 export function resolveAlbumImageHtml(html: string): string
 ```
 
-在布局渲染时二次检查，确保 `album:` 引用被正确替换，处理 `__astro_image_` 等 Astro 内部标记。
+在 `BlogPost` 布局渲染时，通过 `Astro.slots.render('default')` 拿到文章 HTML，再用 `resolveAlbumImageHtml` 做二次替换：
+- 将残留的 `album:` / `__astro_image_` 引用替换为真实 URL
+- 若遇到无法解析的引用，直接 throw error（不会 silent failure）
+
+这确保 **build 和 dev (HMR) 都能正确替换相册图片**。
+
+## 运行时数据校验
+
+`pnpm dev` / `pnpm build` 时会自动校验相册数据完整性：
+
+1. **Remark 插件**（`src/lib/remark-album.mjs`）在首次加载时校验：
+   - `album.id` 在整棵树中唯一
+   - `image.id` 在所属 album 内唯一（跨 album 可重复，如 `travel/japan/2025/hkg-lunch` 和 `travel/japan/2024/hkg-lunch` 不算重复）
+   - 若有重复，抛出 `[album] Validation failed` 错误
+
+2. **图片引用校验**：
+   - Remark 插件处理 `album:` 引用时，若找不到对应图片，抛出带文章路径的 error
+   - `resolveAlbumImageHtml` 兜底时若仍无法解析，也会抛出 error
+
+3. **错误信息示例**：
+   ```
+   [album] Validation failed:
+     Duplicate image id "foo" in album "travel/japan/2025"
+   ```
+   ```
+   [album] Image not found: album:travel/japan/2025/nonexistent (in /path/to/article.md)
+   ```
 
 ## 与 Collection 系统的集成
 
@@ -229,7 +255,8 @@ export const ALBUMS: Album[] = [
 
 ## 注意事项
 
-1. **图片 ID 唯一性**：在同一相册内必须唯一，跨相册可重复
+1. **图片 ID 唯一性**：在同一 album 路径 namespace 内必须唯一（`albumId/imageId` 全路径不重复即可），跨 album 可重复
 2. **路径格式**：`album:` 后跟完整相册路径（支持多级嵌套）
 3. **缓存机制**：remark 插件有模块缓存，修改数据文件后可能需要重启 dev server
 4. **构建优化**：PhotoSwipe 已配置为预构建依赖，避免 504 错误
+5. **运行时校验**：`pnpm dev` / `pnpm build` 会自动检测重复 ID 和无效引用，遇到问题会直接报错终止
