@@ -1,83 +1,70 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import BlogCard from '../../components/BlogCard.astro';
+import TimelineList from '../../components/TimelineList.astro';
 import { SITE_TITLE } from '../../consts';
+import { getTaxonomyTimelineItems, groupTimelineItemsByTag, type TimelineItem } from '../../lib/timeline';
+
+type Props = {
+	posts: TimelineItem[];
+};
 
 export async function getStaticPaths() {
-	const allPosts = await getCollection('blog');
-	const uniqueTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))];
+	const tagGroups = groupTimelineItemsByTag(await getTaxonomyTimelineItems());
 
-	return uniqueTags.map((tag) => {
-		const filteredPosts = allPosts.filter((post) => post.data.tags?.includes(tag)).sort((a, b) => b.data.createdAt.valueOf() - a.data.createdAt.valueOf());
-		return {
-			params: { tag },
-			props: { posts: filteredPosts },
-		};
-	});
+	return [...tagGroups.entries()].map(([tag, posts]) => ({
+		params: { tag },
+		props: { posts },
+	}));
 }
 
-const { tag } = Astro.params;
-const { posts } = Astro.props;
+const tag = Astro.params.tag!;
+const { posts } = Astro.props as Props;
 ---
 
 <BaseLayout title={`标签：#${tag} - ${SITE_TITLE}`} description={`带有标签 #${tag} 的文章`}>
-	<div class="page-header">
-		<a href="/tags" class="back-link">&larr; 查看全部标签</a>
-		<h1 class="page-title">标签：<span>#{tag}</span></h1>
-		<p class="post-count">共 {posts.length} 篇文章</p>
+	<div class="blog-header">
+		<div>
+			<a href="/tags" class="back-link">&larr; 查看全部标签</a>
+			<h1 class="page-title">标签：<span>#{tag}</span></h1>
+			<p class="post-count">共 {posts.length} 篇文章</p>
+		</div>
 	</div>
 
-	<div class="posts-grid">
-		{posts.map((post, i) => (
-			<div style={`animation: fadeInUp 0.5s ease both ${i * 0.1}s`}>
-				<BlogCard
-					title={post.data.title}
-					description={post.data.description}
-					createdAt={post.data.createdAt}
-					cover={post.data.cover}
-					slug={post.id}
-					tags={post.data.tags}
-					category={post.data.category}
-				/>
-			</div>
-		))}
-	</div>
+	<TimelineList items={posts} />
 </BaseLayout>
 
 <style>
-	.page-header {
-		margin-bottom: 2rem;
+	.blog-header {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-bottom: 2.5rem;
 		text-align: center;
 	}
+
 	.back-link {
 		display: inline-block;
 		margin-bottom: 1rem;
 		color: var(--color-text-light);
 		font-weight: 500;
 	}
+
 	.back-link:hover {
 		color: var(--color-primary);
 	}
+
 	.page-title {
-		font-size: 2.5em;
-		margin: 0 0 0.5rem 0;
+		font-size: 2.2em;
+		margin: 0;
 		color: var(--color-primary);
 	}
+
 	.page-title span {
 		color: var(--color-primary);
 	}
+
 	.post-count {
 		color: var(--color-text-light);
-	}
-	.posts-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-		gap: 1.5rem;
-	}
-	@media (max-width: 768px) {
-		.posts-grid {
-			grid-template-columns: 1fr;
-		}
+		margin: 0.5rem 0 0;
 	}
 </style>

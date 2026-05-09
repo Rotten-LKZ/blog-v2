@@ -1,27 +1,9 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE_TITLE } from '../../consts';
+import { getTagCounts, getTaxonomyTimelineItems, tagUrl } from '../../lib/timeline';
 
-const allPosts = await getCollection('blog');
-const allCollectedPosts = await getCollection('collectedPosts');
-
-// Combine all tags from both collections
-const allTags = [
-	...allPosts.flatMap((post) => post.data.tags || []),
-	...allCollectedPosts.flatMap((post) => post.data.tags || [])
-];
-
-const uniqueTags = [...new Set(allTags)];
-
-// Create tag objects with counts
-const tagsWithCounts = uniqueTags.map(tag => {
-	const count = allTags.filter(t => t === tag).length;
-	return { name: tag, count };
-});
-
-// Sort: highest count first
-const sortedTags = tagsWithCounts.sort((a, b) => b.count - a.count);
+const sortedTags = getTagCounts(await getTaxonomyTimelineItems());
 ---
 
 <BaseLayout title={`全部标签 - ${SITE_TITLE}`} description="博客的所有文章标签">
@@ -31,7 +13,7 @@ const sortedTags = tagsWithCounts.sort((a, b) => b.count - a.count);
 
 	<div class="tags-cloud">
 		{sortedTags.map((tag) => (
-			<a href={`/tags/${tag.name}`} class="tag-item">
+			<a href={tagUrl(tag.name)} class="tag-item">
 				<span class="tag-hash">#</span>{tag.name} <span class="tag-count">({tag.count})</span>
 			</a>
 		))}
