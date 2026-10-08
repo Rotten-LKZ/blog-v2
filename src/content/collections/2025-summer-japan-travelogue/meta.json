@@ -1,23 +1,43 @@
 {
-	"title": "2025 暑假赴日旅行记",
-	"description": "记录毕业暑假赴日旅行过程！请注意本系列图片较多，请注意流量消耗。",
-	"category": "Life",
-	"tags": ["Japan", "Travel"],
-	"isCollapsed": true,
-	"showTocAbove": true,
-	"structure": [
-		{
-			"chapterName": "第一章：东京之旅",
-			"posts": [
-				{ "slug": "chapter1-1-start", "title": "1.1 启程" },
-				{ "slug": "chapter1-2-east", "title": "1.2 台东区" },
-				{ "slug": "chapter1-3-kessokubando-yourname", "title": "1.3 孤独摇滚&你的名字圣地巡礼" }
-			]
-		},
-		{
-			"chapterName": "第二章：关西之旅",
-			"posts": [
-			]
-		}
-	]
+  "title": "2025 暑假赴日旅行记",
+  "description": "记录毕业暑假赴日旅行过程！请注意本系列图片较多，请注意流量消耗。",
+  "category": "Life",
+  "tags": [
+    "Japan",
+    "Travel"
+  ],
+  "isCollapsed": true,
+  "showTocAbove": true,
+  "structure": [
+    {
+      "chapterName": "第一章：东京之旅",
+      "posts": [
+        {
+          "slug": "chapter1-1-start",
+          "title": "1.1 启程"
+        },
+        {
+          "slug": "chapter1-2-east",
+          "title": "1.2 台东区"
+        },
+        {
+          "slug": "chapter1-3-kessokubando-yourname",
+          "title": "1.3 孤独摇滚&你的名字圣地巡礼"
+        },
+        {
+          "slug": "chapter1-4-last-day-tokyo",
+          "title": "1.4 东京最后一天"
+        }
+      ]
+    },
+    {
+      "chapterName": "第二章：关西之旅",
+      "posts": [
+        {
+          "slug": "chapter2-1-toyobashi",
+          "title": "2.1 丰桥！"
+        }
+      ]
+    }
+  ]
 }

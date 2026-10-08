@@ -18,21 +18,22 @@ export interface Album {
 
 export const ALBUMS: Album[] = [
 	{
-		id: 'travel',
-		title: '旅游',
-		description: '我的旅行足迹',
-		children: [
+		"id": "travel",
+		"title": "旅游",
+		"description": "我的旅行足迹",
+		"children": [
 			{
-				id: 'travel/japan',
-				title: '日本',
-				children: [
+				"id": "travel/japan",
+				"title": "日本",
+				"children": [
 					{
-						id: 'travel/japan/2025',
-						title: '2025 暑假',
-						images: travelJapan2025,
-					},
+						"id": "travel/japan/2025",
+						"title": "2025 暑假",
+						"images": travelJapan2025,
+						"description": "2025 毕业暑假赴日照片合集",
+					}
 				],
-			},
+			}
 		],
-	},
+	}
 ];
