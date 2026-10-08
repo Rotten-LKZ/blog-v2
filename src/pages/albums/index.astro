@@ -14,7 +14,7 @@ const description = '记录生活的点点滴滴';
 			{ALBUMS.map(album => (
 				<a href={`/albums/${album.id}`} class="album-card">
 					<div class="album-cover">
-						{album.cover ? <img src={album.cover} alt={album.title} /> : <div class="placeholder-cover">📁</div>}
+						{album.cover ? <img data-image-src={album.cover} alt={album.title} /> : <div class="placeholder-cover">📁</div>}
 					</div>
 					<div class="album-info">
 						<h3>{album.title}</h3>
