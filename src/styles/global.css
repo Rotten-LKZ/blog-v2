@@ -165,8 +165,17 @@ p {
 }
 
 .prose img {
+	max-height: min(70vh, 680px);
+	width: auto;
+	display: block;
+	margin-inline: auto;
+	object-fit: contain;
 	border-radius: var(--radius);
 	box-shadow: var(--shadow-soft);
+}
+
+.prose img + img {
+	margin-top: 1.5em;
 }
 
 .prose blockquote {
