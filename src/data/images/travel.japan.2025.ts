@@ -165,12 +165,12 @@ export default [
     },
     {
         id: 'yourname-2',
-        title: '你的名字 圣地巡礼 - 2',
+        title: '你的名字 圣地巡礼 - 2 男女主最后相遇台阶',
         url: 'https://img.rotcool.top/i/37e2bc13-9be9-4a8f-8350-65056cc9b322.avif',
     },
     {
         id: 'yourname-3',
-        title: '你的名字 圣地巡礼 - 3',
+        title: '你的名字 圣地巡礼 - 3 须贺神社明信片',
         url: 'https://img.rotcool.top/i/5cb9ecac-28fd-4e1a-bf4a-55db0d4b225b.avif',
     },
     {
@@ -185,12 +185,12 @@ export default [
     },
     {
         id: 'kessokubando-2',
-        title: '孤独摇滚 圣地巡礼 - 2',
+        title: '孤独摇滚 圣地巡礼 - 2 摇摇椅',
         url: 'https://img.rotcool.top/i/9796d5d0-1a75-4ad5-8030-a65e70edcfe0.avif',
     },
     {
         id: 'kessokubando-3',
-        title: '孤独摇滚 圣地巡礼 - 3',
+        title: '孤独摇滚 圣地巡礼 - 3 涂鸦墙',
         url: 'https://img.rotcool.top/i/a029b132-4f4c-4d10-bfcc-e2f4b165216c.avif',
     },
 ] as AlbumImage[]

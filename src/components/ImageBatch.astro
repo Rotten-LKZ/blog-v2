@@ -1,0 +1,79 @@
+---
+import { findImageByPath, getFullAlbumTitle } from '../lib/albums';
+
+interface Props {
+  images: { src: string; alt: string }[];
+}
+
+const { images } = Astro.props;
+const items = images.map(({ src, alt }) => {
+  const result = findImageByPath(src);
+  if (!result) throw new Error(`ImageBatch: unknown album image ${src}`);
+  return { url: result.image.url, alt, title: result.image.title, albumId: result.album.id, albumTitle: getFullAlbumTitle(result.album.id) };
+});
+---
+
+<div class="image-batch" role="region" aria-label="横向图片集" tabindex="0">
+  {items.map((item) => (
+    <div class="photo-wrapper">
+      <img data-image-src={item.url} alt={item.alt} title={item.title} data-album-id={item.albumId} data-album-title={item.albumTitle} />
+    </div>
+  ))}
+</div>
+
+<script>
+  function initImageBatches() {
+    for (const batch of document.querySelectorAll<HTMLElement>('.image-batch')) {
+      if (batch.dataset.wheelReady) continue;
+      batch.dataset.wheelReady = 'true';
+      for (const img of batch.querySelectorAll<HTMLImageElement>('.photo-wrapper img')) {
+        const setNaturalRatio = () => {
+          const wrapper = img.parentElement;
+          if (wrapper && !wrapper.style.aspectRatio && img.naturalWidth && img.naturalHeight) {
+            wrapper.style.aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
+          }
+        };
+        if (img.complete && img.naturalWidth) setNaturalRatio();
+        else img.addEventListener('load', setNaturalRatio, { once: true });
+      }
+      batch.addEventListener('wheel', (event) => {
+        if (event.ctrlKey || event.metaKey || !batch.scrollWidth || batch.scrollWidth <= batch.clientWidth) return;
+        const delta = event.deltaY * (event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? batch.clientWidth : 1);
+        if (!delta || (delta < 0 && batch.scrollLeft <= 0) || (delta > 0 && batch.scrollLeft + batch.clientWidth >= batch.scrollWidth - 1)) return;
+        event.preventDefault();
+        batch.scrollLeft += delta;
+      }, { passive: false });
+    }
+  }
+  initImageBatches();
+  document.addEventListener('astro:page-load', initImageBatches);
+</script>
+
+<style>
+  .image-batch {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 100%;
+    padding: 0.5rem 0 1rem;
+    margin: 1.5rem 0;
+    overscroll-behavior-x: contain;
+  }
+  .photo-wrapper {
+    flex: none;
+    height: clamp(220px, 50vh, 500px);
+    aspect-ratio: 4 / 3;
+    background: var(--color-bg-inset);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .photo-wrapper img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    object-fit: contain;
+  }
+</style>
