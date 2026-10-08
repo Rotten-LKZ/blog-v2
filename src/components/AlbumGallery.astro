@@ -30,7 +30,7 @@ const items = imagesWithAlbums.map(({ image, album: itemAlbum }) => {
 		<div class="photo-item">
 			<div class="photo-wrapper">
 				<img 
-					src={image.url} 
+					data-image-src={image.url}
 					alt={image.title || image.id} 
 					data-album-title={getFullAlbumTitle(itemAlbum.id)}
 					data-album-id={itemAlbum.id}

@@ -89,7 +89,7 @@ toc: true  # 是否显示目录
 
 ## 🛠️ 技术栈
 
-- **框架**: [Astro 5.0](https://astro.build/) (Content Layer API)
+- **框架**: [Astro 7](https://astro.build/) (Content Layer API)
 - **前端库**: [Vue 3](https://vuejs.org/) (用于交互模块)
 - **样式**: Vanilla CSS (CSS Variables + CSS Columns 瀑布流)
 - **类型安全**: TypeScript

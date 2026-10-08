@@ -174,7 +174,11 @@ function getAlbumPathFromImageTag(tag: string): { path: string; alt?: string } |
 export function resolveAlbumImageHtml(html: string): string {
 	return html.replace(/<img\b[^>]*>/gi, (tag) => {
 		const albumRef = getAlbumPathFromImageTag(tag);
-		if (!albumRef) return tag;
+		if (!albumRef) {
+			const src = getHtmlAttribute(tag, 'src');
+			if (!src?.startsWith('https://img.rotcool.top/i/')) return tag;
+			return setHtmlAttribute(removeHtmlAttribute(tag, 'src'), 'data-image-src', src);
+		}
 
 		const result = findImageByPath(albumRef.path);
 		if (!result) {
@@ -192,6 +196,6 @@ export function resolveAlbumImageHtml(html: string): string {
 		nextTag = setHtmlAttribute(nextTag, 'data-album-title', getFullAlbumTitle(result.album.id));
 		nextTag = setHtmlAttribute(nextTag, 'data-album-id', result.album.id);
 
-		return nextTag;
+		return setHtmlAttribute(removeHtmlAttribute(nextTag, 'src'), 'data-image-src', result.image.url);
 	});
 }

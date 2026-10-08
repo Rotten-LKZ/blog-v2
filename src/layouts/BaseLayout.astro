@@ -30,6 +30,35 @@ const { title, description, image, showSidebar = true } = Astro.props;
 				<Footer />
 			</div>
 		</div>
+		<script>
+			const loadImages = () => {
+				for (const img of document.querySelectorAll<HTMLImageElement>('img[data-image-src]')) {
+					const url = img.dataset.imageSrc!;
+					delete img.dataset.imageSrc;
+					const infoUrl = new URL(url, location.href);
+					if (infoUrl.pathname.startsWith('/i/')) {
+						infoUrl.pathname = `/info/${infoUrl.pathname.slice(3)}`;
+						fetch(infoUrl).then((response) => {
+							if (!response.ok) throw new Error(`Image info: ${response.status}`);
+							return response.json();
+						}).then(({ data }) => {
+							const width = Number(data?.width);
+							const height = Number(data?.height);
+							if (width > 0 && height > 0 && Number.isFinite(width) && Number.isFinite(height)) {
+								img.width = width;
+								img.height = height;
+								const wrapper = img.closest<HTMLElement>('.photo-wrapper');
+								if (wrapper) wrapper.style.aspectRatio = `${width} / ${height}`;
+							}
+						}).catch(() => {}).finally(() => { img.src = url; });
+					} else {
+						img.src = url;
+					}
+				}
+			};
+			loadImages();
+			document.addEventListener('astro:page-load', loadImages);
+		</script>
 
 		<style>
 			.layout-wrapper {

@@ -55,6 +55,8 @@ export const ALBUMS: Album[] = [{
 }];
 ```
 
+图床图片（`https://img.rotcool.top/i/...`）在相册列表、相册详情和文章中先以 `data-image-src` 输出，不预先设置 `src`。浏览器将路径 `/i/` 换为 `/info/` 请求元数据，从响应的 `data.width` / `data.height` 设置图片尺寸（相册详情同时设置容器比例），之后才设置 `src` 加载图片；元数据请求失败时仍加载原图。
+
 ## 图片引用系统
 
 ### Markdown 语法
