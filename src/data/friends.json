@@ -33,10 +33,17 @@
     },
     {
         "url": "https://xiaozhihua.top",
-        "avatar": "https://img.rotcool.top/v/2026/05/29/1677e439b2ac10939138602f8e1a52b919f3f8c15562035361726b9050dd5168.jpg",
+        "avatar": "https://img.rotcool.top/i/eecd9a72-9c26-4a8d-96d4-8397b57380b1.avif",
         "name": "咲之花",
         "blog": "咲之花の小窝",
         "desc": "常觉不足才是成长",
         "color": "#FFE5DF"
+    },
+    {
+        "url": "https://blog.hanawa.me/",
+        "avatar": "https://hanawa.me/assets/img/avatar.jpg",
+        "name": "日向花和",
+        "blog": "花和的文章杂物间",
+        "color": "#dda49d"
     }
 ]
