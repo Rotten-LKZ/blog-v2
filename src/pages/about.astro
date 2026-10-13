@@ -1,29 +1,28 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE_TITLE } from '../consts';
-import ImageZoom from '../components/ImageZoom.astro';
-import * as aboutContent from '../content/about.md';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { SITE_TITLE } from "../consts";
+import ImageZoom from "../components/ImageZoom.astro";
+import * as aboutContent from "../content/about.md";
 
 const { Content } = aboutContent;
 ---
 
 <BaseLayout title={`关于 - ${SITE_TITLE}`} description="关于我&关于此站">
-	<article class="about-page">
-		<h1>关于我 & 关于此站</h1>
-		<div class="prose">
-			<Content />
-		</div>
-	</article>
-	<ImageZoom />
+    <article class="about-page">
+        <h1>关于我 & 关于此站</h1>
+        <div class="prose">
+            <Content />
+        </div>
+    </article>
+    <ImageZoom />
 </BaseLayout>
 
-
 <style>
-	.about-page {
-		max-width: 660px;
-	}
+    /*.about-page {
+    	max-width: 660px;
+    }*/
 
-	.about-page h1 {
-		margin-bottom: 1.5rem;
-	}
+    .about-page h1 {
+        margin-bottom: 1.5rem;
+    }
 </style>
