@@ -28,7 +28,7 @@ html {
 	--color-primary-pale: #1A2A3A;
 	--color-accent: #3D2630; /* Much darker, subtle pink for dark mode */
 	--color-bg: #0B1219;
-	--color-bg-card: rgba(26, 39, 53, 0.8);
+	--color-bg-card: rgba(26, 39, 53, 1);
 	--color-text: #E0E6ED;
 	--color-text-light: #8B9DB0;
 	--color-border: #2A3A4A;
