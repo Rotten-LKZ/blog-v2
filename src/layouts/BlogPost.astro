@@ -5,6 +5,7 @@ import BaseLayout from './BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import TagPill from '../components/TagPill.astro';
 import ImageZoom from '../components/ImageZoom.astro';
+import Mermaid from '../components/Mermaid.astro';
 import { resolveAlbumImageHtml } from '../lib/albums';
 
 type Props = CollectionEntry<'blog'>['data'] & {
@@ -70,6 +71,7 @@ const filteredHeadings = headings.filter((h) => h.depth > 1 && h.depth < 4);
 		)}
 	</div>
 	<ImageZoom />
+	<Mermaid />
 </BaseLayout>
 
 <style>

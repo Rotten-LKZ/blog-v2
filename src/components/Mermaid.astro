@@ -1,0 +1,93 @@
+---
+// 渲染 .prose 内 ```mermaid 代码块（构建期为 Shiki <pre data-language="mermaid">）。
+// 用 pele 替代 mermaid.js：零依赖、体积 1/7、CSS 变量主题（明暗切换无需重渲染）。
+// 主题色映射到站点变量（:root 与 [data-theme="dark"] 自动生效）。
+---
+
+<script>
+    const mountMermaid = async () => {
+        const blocks = document.querySelectorAll<HTMLElement>(
+            ".prose pre[data-language='mermaid']",
+        );
+        if (blocks.length === 0) return;
+
+        const { mount } = await import("pele");
+        for (const pre of blocks) {
+            // astro:page-load 可能重复触发，防重复挂载
+            if (pre.dataset.peleMounted) continue;
+            pre.dataset.peleMounted = "1";
+
+            const source = (pre.querySelector("code")?.textContent ?? "").trim();
+            const container = document.createElement("div");
+            container.className = "mermaid-block";
+            pre.replaceWith(container);
+
+            // mount(): 容器宽度作为 maxWidth（窄屏自动换竖版布局）、
+            // 字体就绪后重绘、错误直接显示在容器内（--pele-error 着色）
+            mount(container, source, {
+                zoom: {
+                    labels: { zoomIn: "放大", zoomOut: "缩小", reset: "重置" },
+                },
+            });
+        }
+    };
+
+    mountMermaid();
+    document.addEventListener("astro:page-load", mountMermaid);
+</script>
+
+<style is:global>
+    .mermaid-block {
+        /* pele 主题 → 站点配色，随 data-theme 自动切换 */
+        --pele-bg: var(--color-bg-card);
+        --pele-fg: var(--color-text);
+        --pele-muted: var(--color-text-light);
+        --pele-line: var(--color-primary);
+        --pele-surface: var(--color-bg);
+        --pele-surface-alt: var(--color-primary-pale);
+        --pele-border: var(--color-primary);
+        /* accent 承担条形/高亮底色，其上文字为 --pele-bg，
+           故不用站点 --color-accent（亮色过浅/暗色过深），改用主色系可读色 */
+        --pele-accent: #2471a3;
+        --pele-font: "Atkinson", sans-serif;
+        --pele-error: #e45756;
+        /* 系列色（亮色）：pele 条内文字用 --pele-bg(白卡片)，
+           需与白字保持 ≥4.5 对比度 */
+        --pele-series-1: #2471a3;
+        --pele-series-2: #0e8273;
+        --pele-series-3: #6c3483;
+        --pele-series-4: #9c640c;
+        --pele-series-5: #a93226;
+        --pele-series-6: #21618c;
+        --pele-series-7: #7d6608;
+        --pele-series-8: #196f3d;
+
+        margin: 1.5em 0;
+        padding: 1.5em;
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-soft);
+    }
+
+    /* 暗色模式：系列色换亮色系。
+       pele 把条内任务文字着色为 --pele-bg（暗色卡片），
+       默认系列色是白底设计的暗色 → 深字压深条不可读。
+       亮系列色 + 深卡片文字 = 对比度正常。 */
+    [data-theme='dark'] .mermaid-block {
+        --pele-accent: #6bc5f0;
+        --pele-series-1: #6bc5f0;
+        --pele-series-2: #58d6c8;
+        --pele-series-3: #c39bd3;
+        --pele-series-4: #f5b041;
+        --pele-series-5: #ec7063;
+        --pele-series-6: #8ed4f5;
+        --pele-series-7: #f4d03f;
+        --pele-series-8: #7dcea0;
+    }
+
+    .mermaid-block svg {
+        display: block;
+        margin: 0 auto;
+    }
+</style>

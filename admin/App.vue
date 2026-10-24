@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
@@ -16,6 +16,23 @@ const textarea = ref<HTMLTextAreaElement | null>(null), suggestion = ref(''), su
 const selectedIndex = ref(0);
 const slugInput = ref('');
 const filtered = computed(() => posts.value.filter(p => `${p.collection || ''}/${p.slug}`.toLowerCase().includes(search.value.toLowerCase())));
+const previewEl = ref<HTMLElement | null>(null);
+let peleModule: typeof import('pele') | null = null;
+async function renderMermaid() {
+  const el = previewEl.value;
+  if (!el) return;
+  const blocks = [...el.querySelectorAll<HTMLElement>('pre > code.language-mermaid')];
+  if (!blocks.length) return;
+  peleModule ||= await import('pele');
+  const { mount } = peleModule;
+  for (const code of blocks) {
+    const container = document.createElement('div');
+    container.className = 'mermaid-block';
+    // mount() 错误直接显示在容器内，无需 try/catch
+    mount(container, code.textContent || '', { maxWidth: el.clientWidth });
+    code.parentElement!.replaceWith(container);
+  }
+}
 const preview = computed(() => {
   const body = source.value.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, '').replace(/^import\s+.+?;?\s*$/gm, '');
   const withImages = body.replace(/(!\[[^\]]*\]\()album:([\w/.-]+)(\))/g, (full, open, ref, close) => {
@@ -24,6 +41,7 @@ const preview = computed(() => {
   });
   return DOMPurify.sanitize(marked.parse(withImages.replace(/<([A-Z][\w]*)\b[^>]*\/>/g, '\n> 组件：$1\n'), { async: false }) as string);
 });
+watch(preview, () => { nextTick(() => setTimeout(renderMermaid, 300)); });
 function findImage(ref: string): Image | undefined {
   const slash = ref.lastIndexOf('/');
   return findAlbum(ref.slice(0, slash))?.images?.find(image => image.id === ref.slice(slash + 1));
@@ -200,7 +218,7 @@ function deleteAlbum() {
         <template v-if="section==='albums'"><button v-if="selectedAlbum" @click="deleteAlbum">删除相册</button><button class="primary" @click="saveAlbums">保存相册</button></template>
       </div>
       <div v-if="section==='posts' && current" class="workspace">
-        <div class="preview"><h2>实时预览</h2><article class="prose" v-html="preview"></article></div>
+        <div class="preview"><h2>实时预览</h2><article class="prose" ref="previewEl" v-html="preview"></article></div>
         <div class="editor"><div class="editor-head"><label>文件名 <input v-model="slugInput" :disabled="posts.some(p=>p.kind===current?.kind && p.collection===current?.collection && p.slug===current?.slug)" /></label><span>输入 @ 搜索组件，输入 album: 搜索图片</span></div><textarea ref="textarea" v-model="source" spellcheck="false" aria-label="文章源码" @input="updateSuggestion" @click="updateSuggestion" @keydown="editorKey"></textarea><div v-if="matches.length" class="suggestions"><button v-for="(name,i) in matches" :key="name" :class="{active:i===selectedIndex}" @mousedown.prevent="insertSuggestion(name)">{{name}}</button></div></div>
       </div>
       <div v-else-if="section==='collections' && selectedCollection" class="panel"><p>编辑 meta.json：title、description、category、tags、structure（章节与文章 slug）等。文章通过左侧「文章」新建并指定合集 ID。</p><textarea v-model="metaText" spellcheck="false" aria-label="合集元数据"></textarea></div>
