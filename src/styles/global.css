@@ -192,6 +192,11 @@ p {
 	margin-bottom: 0;
 }
 
+/* blockquote 标记（> [!no-indent]）：取消段首缩进 */
+.prose blockquote.no-indent p {
+	text-indent: 0;
+}
+
 .prose code {
 	background: var(--color-primary-pale);
 	color: var(--color-primary);

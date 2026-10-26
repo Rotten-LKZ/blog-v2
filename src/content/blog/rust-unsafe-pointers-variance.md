@@ -477,6 +477,7 @@ pub const fn try_borrow_mut(&self) -> Result<RefMut<'_, T>, BorrowMutError> {
 
 `try_borrow_mut` 和 `borrow_mut` 跟不可变借用很相似，就不再额外说明了。
 
+> [!no-indent]
 > 版权声明：本文中所引用的 Rust 标准库源码版权归属 Rust 项目开发者。基于 MIT 和 Apache 2.0 双重许可协议开源。其中删除了一些额外的不影响主要理解的注释和形如 #[] 的属性。
 
 

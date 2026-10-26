@@ -74,6 +74,42 @@ const filteredHeadings = headings.filter((h) => h.depth > 1 && h.depth < 4);
 	<Mermaid />
 </BaseLayout>
 
+{toc && filteredHeadings.length > 0 && (
+	<script>
+		// TOC 滚动高亮：当前阅读位置对应的目录项加 active
+		const links = [...document.querySelectorAll<HTMLAnchorElement>('.toc-nav a')];
+		if (links.length > 0) {
+			const targets = links
+				.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))))
+				.filter((el): el is HTMLElement => el !== null);
+			let ticking = false;
+			const activate = (i: number) => {
+				links.forEach((a, j) => a.classList.toggle('active', i === j));
+			};
+			const update = () => {
+				ticking = false;
+				// 阅读线在视口顶部约 1/4 处：最后一个顶部越过阅读线的标题为当前节
+				const line = window.scrollY + window.innerHeight * 0.25;
+				let current = 0;
+				for (let i = 0; i < targets.length; i++) {
+					if (targets[i]!.offsetTop < line) current = i;
+				}
+				// 滚动到底部时强制最后一项
+				const atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+				activate(atBottom ? targets.length - 1 : current);
+			};
+			const onScroll = () => {
+				if (!ticking) {
+					ticking = true;
+					requestAnimationFrame(update);
+				}
+			};
+			window.addEventListener('scroll', onScroll, { passive: true });
+			update();
+		}
+	</script>
+)}
+
 <style>
 	.post-layout {
 		display: flex;
@@ -115,6 +151,14 @@ const filteredHeadings = headings.filter((h) => h.depth > 1 && h.depth < 4);
 		border: 1px solid var(--color-border);
 		max-height: calc(100vh - 4rem);
 		overflow-y: auto;
+	}
+
+	.toc-nav a.active {
+		color: var(--color-primary);
+		font-weight: 700;
+		border-left: 3px solid var(--color-primary);
+		padding-left: 0.5rem;
+		transform: translateX(4px);
 	}
 
 	.toc-inner h3 {
