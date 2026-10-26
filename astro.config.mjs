@@ -7,8 +7,12 @@ import vue from '@astrojs/vue';
 import { defineConfig } from 'astro/config';
 import remarkGfm from 'remark-gfm';
 import { remarkAlbumImages } from './src/lib/remark-album.mjs';
+import { rehypeFootnotesLabel } from './src/lib/rehype-footnotes.mjs';
 
-const processor = unified({ remarkPlugins: [remarkGfm, remarkAlbumImages] });
+const processor = unified({
+	remarkPlugins: [remarkGfm, remarkAlbumImages],
+	rehypePlugins: [rehypeFootnotesLabel],
+});
 
 // https://astro.build/config
 export default defineConfig({
