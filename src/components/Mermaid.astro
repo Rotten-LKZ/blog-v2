@@ -1,6 +1,7 @@
 ---
 // 渲染 .prose 内 ```mermaid 代码块（构建期为 Shiki <pre data-language="mermaid">）。
 // 用 pele 替代 mermaid.js：零依赖、体积 1/7、CSS 变量主题（明暗切换无需重渲染）。
+// pele/lazy 按图表类型动态加载，避免整包进主 chunk。
 // 主题色映射到站点变量（:root 与 [data-theme="dark"] 自动生效）。
 ---
 
@@ -11,7 +12,7 @@
         );
         if (blocks.length === 0) return;
 
-        const { mount } = await import("pele");
+        const { mountAsync } = await import("pele/lazy");
         for (const pre of blocks) {
             // astro:page-load 可能重复触发，防重复挂载
             if (pre.dataset.peleMounted) continue;
@@ -22,9 +23,9 @@
             container.className = "mermaid-block";
             pre.replaceWith(container);
 
-            // mount(): 容器宽度作为 maxWidth（窄屏自动换竖版布局）、
+            // mountAsync(): 容器宽度作为 maxWidth（窄屏自动换竖版布局）、
             // 字体就绪后重绘、错误直接显示在容器内（--pele-error 着色）
-            mount(container, source, {
+            mountAsync(container, source, {
                 zoom: {
                     labels: { zoomIn: "放大", zoomOut: "缩小", reset: "重置" },
                 },
